@@ -1174,14 +1174,14 @@ namespace SAM
             var startInfo = new ProcessStartInfo
             {
                 UseShellExecute = true,
-                FileName = settings.User.SteamPath + "steam.exe",
+                FileName = Path.Combine(settings.User.SteamPath, "steam.exe"),
                 WorkingDirectory = settings.User.SteamPath,
                 Arguments = parametersBuilder.ToString(),
             };
 
             try
             {
-                var steamProcess = Process.Start(startInfo);
+                Process.Start(startInfo);
             }
             catch (Exception m)
             {
@@ -1270,7 +1270,7 @@ namespace SAM
             var waitCount = 0;
 
             // Only handle 2FA if shared secret was entered.
-            if (decryptedAccounts[index].SharedSecret != null && decryptedAccounts[index].SharedSecret.Length > 0)
+            if (!string.IsNullOrEmpty(decryptedAccounts[index].SharedSecret))
             {
                 var steamGuardWindow = Utils.GetSteamGuardWindow();
 
@@ -1359,7 +1359,8 @@ namespace SAM
             Utils.SendEnter(steamGuardWindow.RawPtr, settings.User.VirtualInputMethod);
 
             // Restore CapsLock back if CapsLock is off before we start typing.
-            if (settings.User.HandleMicrosoftIME && !capsLockEnabled) Utils.SendCapsLockGlobally();
+            if (settings.User.HandleMicrosoftIME && !capsLockEnabled)
+                Utils.SendCapsLockGlobally();
 
             // Need a little pause here to more reliably check for popup later.
             Thread.Sleep(settings.User.SleepTime);
@@ -1485,7 +1486,8 @@ namespace SAM
             var messageBoxResult = MessageBox.Show("Are you sure you want to expose all account credentials in plain text?", "Confirm", MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
-            if (messageBoxResult == MessageBoxResult.No || IsPasswordProtected() && !VerifyPassword()) return;
+            if (messageBoxResult == MessageBoxResult.No || IsPasswordProtected() && !VerifyPassword()) 
+                return;
 
             var exposedCredentialsWindow = new ExposedInfoWindow(decryptedAccounts);
             exposedCredentialsWindow.ShowDialog();
@@ -1613,7 +1615,7 @@ namespace SAM
 
         private void MainScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            var scv = (ScrollViewer)sender;
+            var scv = (ScrollViewer) sender;
             scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
             e.Handled = true;
         }
@@ -1907,17 +1909,9 @@ namespace SAM
 
             if (result == MessageBoxResult.Yes)
             {
-                var accountsToDelete = new List<Account>();
+                var accountsToDelete = encryptedAccounts.Where(a => a.NumberOfVacBans > 0 || a.NumberOfGameBans > 0).ToList();
+                accountsToDelete.ForEach(a => encryptedAccounts.Remove(a));
 
-                foreach (var account in encryptedAccounts)
-                {
-                    if (account.NumberOfVacBans > 0 || account.NumberOfGameBans > 0) accountsToDelete.Add(account);
-                }
-
-                foreach (var account in accountsToDelete)
-                {
-                    encryptedAccounts.Remove(account);
-                }
 
                 SerializeAccounts();
             }
