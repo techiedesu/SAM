@@ -211,7 +211,10 @@
       <Version>1.11.24</Version>
     </PackageReference>
     <PackageReference Include="MahApps.Metro">
-      <Version>2.1.0</Version>
+      <Version>1.6.5</Version>
+    </PackageReference>
+    <PackageReference Include="MaterialDesignThemes.MahApps">
+      <Version>0.1.4</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Bcl.Build">
       <Version>1.0.21</Version>
