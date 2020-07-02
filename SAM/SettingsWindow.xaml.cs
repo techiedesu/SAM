@@ -59,94 +59,94 @@ namespace SAM
 
         private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (System.IO.File.Exists(SamSettings.FILE_NAME))
+            if (System.IO.File.Exists(SamSettings.FileName))
             {
                 // General
-                accountsPerRowSpinBox.Text = settings.FileService.Read(SamSettings.ACCOUNTS_PER_ROW, SamSettings.SECTION_GENERAL);
-                sleepTimeSpinBox.Text = settings.FileService.Read(SamSettings.SLEEP_TIME, SamSettings.SECTION_GENERAL);
-                startupCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.START_WITH_WINDOWS, SamSettings.SECTION_GENERAL));
-                startupMinCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.START_MINIMIZED, SamSettings.SECTION_GENERAL));
-                minimizeToTrayCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.MINIMIZE_TO_TRAY, SamSettings.SECTION_GENERAL));
-                passwordProtectCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.PASSWORD_PROTECT, SamSettings.SECTION_GENERAL));
-                rememberLoginPasswordCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.REMEMBER_PASSWORD, SamSettings.SECTION_GENERAL));
-                clearUserDataCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CLEAR_USER_DATA, SamSettings.SECTION_GENERAL));
-                HideAddButtonCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.HIDE_ADD_BUTTON, SamSettings.SECTION_GENERAL));
-                CheckForUpdatesCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CHECK_FOR_UPDATES, SamSettings.SECTION_GENERAL));
-                CloseOnLoginCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CLOSE_ON_LOGIN, SamSettings.SECTION_GENERAL));
-                ListViewCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.LIST_VIEW, SamSettings.SECTION_GENERAL));
-                SandboxModeCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.SANDBOX_MODE, SamSettings.SECTION_GENERAL));
+                accountsPerRowSpinBox.Text = settings.FileService.Read(SamSettings.AccountsPerRow, SamSettings.SectionGeneral);
+                sleepTimeSpinBox.Text = settings.FileService.Read(SamSettings.SleepTime, SamSettings.SectionGeneral);
+                startupCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.StartWithWindows, SamSettings.SectionGeneral));
+                startupMinCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.StartMinimized, SamSettings.SectionGeneral));
+                minimizeToTrayCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.MinimizeToTray, SamSettings.SectionGeneral));
+                passwordProtectCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.PasswordProtect, SamSettings.SectionGeneral));
+                rememberLoginPasswordCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.RememberPassword, SamSettings.SectionGeneral));
+                clearUserDataCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.ClearUserData, SamSettings.SectionGeneral));
+                HideAddButtonCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.HideAddButton, SamSettings.SectionGeneral));
+                CheckForUpdatesCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CheckForUpdates, SamSettings.SectionGeneral));
+                CloseOnLoginCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CloseOnLogin, SamSettings.SectionGeneral));
+                ListViewCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.ListView, SamSettings.SectionGeneral));
+                SandboxModeCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.SandboxMode, SamSettings.SectionGeneral));
 
                 // AutoLog
-                if (Convert.ToBoolean(settings.FileService.Read(SamSettings.LOGIN_RECENT_ACCOUNT, SamSettings.SECTION_AUTOLOG)) == true)
+                if (Convert.ToBoolean(settings.FileService.Read(SamSettings.LoginRecentAccount, SamSettings.SectionAutolog)) == true)
                 {
                     mostRecentCheckBox.IsChecked = true;
-                    recentAccountLabel.Text = MainWindow.encryptedAccounts[Int32.Parse(settings.FileService.Read(SamSettings.RECENT_ACCOUNT_INDEX, SamSettings.SECTION_AUTOLOG))].Name;
+                    recentAccountLabel.Text = MainWindow.encryptedAccounts[Int32.Parse(settings.FileService.Read(SamSettings.RecentAccountIndex, SamSettings.SectionAutolog))].Name;
                 }
-                else if (Convert.ToBoolean(settings.FileService.Read(SamSettings.LOGIN_SELECTED_ACCOUNT, SamSettings.SECTION_AUTOLOG)) == true)
+                else if (Convert.ToBoolean(settings.FileService.Read(SamSettings.LoginSelectedAccount, SamSettings.SectionAutolog)) == true)
                 {
                     selectedAccountCheckBox.IsChecked = true;
-                    selectedAccountLabel.Text = MainWindow.encryptedAccounts[Int32.Parse(settings.FileService.Read(SamSettings.SELECTED_ACCOUNT_INDEX, SamSettings.SECTION_AUTOLOG))].Name;
+                    selectedAccountLabel.Text = MainWindow.encryptedAccounts[Int32.Parse(settings.FileService.Read(SamSettings.SelectedAccountIndex, SamSettings.SectionAutolog))].Name;
                 }
-                InputMethodSelectBox.SelectedItem = (VirtualInputMethod)Enum.Parse(typeof(VirtualInputMethod), settings.FileService.Read(SamSettings.INPUT_METHOD, SamSettings.SECTION_AUTOLOG));
-                HandleImeCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.HANDLE_IME, SamSettings.SECTION_AUTOLOG));
-                SteamGuardOnlyCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.IME_2FA_ONLY, SamSettings.SECTION_AUTOLOG));
+                InputMethodSelectBox.SelectedItem = (VirtualInputMethod)Enum.Parse(typeof(VirtualInputMethod), settings.FileService.Read(SamSettings.InputMethod, SamSettings.SectionAutolog));
+                HandleImeCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.HandleIme, SamSettings.SectionAutolog));
+                SteamGuardOnlyCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.Ime2FaOnly, SamSettings.SectionAutolog));
 
                 // Customize
-                ThemeSelectBox.Text = settings.FileService.Read(SamSettings.THEME, SamSettings.SECTION_CUSTOMIZE);
-                AccentSelectBox.Text = settings.FileService.Read(SamSettings.ACCENT, SamSettings.SECTION_CUSTOMIZE);
-                buttonSizeSpinBox.Text = settings.FileService.Read(SamSettings.BUTTON_SIZE, SamSettings.SECTION_CUSTOMIZE);
-                ButtonColorPicker.SelectedColor = (Color)ConvertFromString(settings.FileService.Read(SamSettings.BUTTON_COLOR, SamSettings.SECTION_CUSTOMIZE));
-                ButtonFontSizeSpinBox.Text = settings.FileService.Read(SamSettings.BUTTON_FONT_SIZE, SamSettings.SECTION_CUSTOMIZE);
-                ButtonFontColorPicker.SelectedColor = (Color)ConvertFromString(settings.FileService.Read(SamSettings.BUTTON_FONT_COLOR, SamSettings.SECTION_CUSTOMIZE));
-                BannerColorPicker.SelectedColor = (Color)ConvertFromString(settings.FileService.Read(SamSettings.BUTTON_BANNER_COLOR, SamSettings.SECTION_CUSTOMIZE));
-                BannerFontSizeSpinBox.Text = settings.FileService.Read(SamSettings.BUTTON_BANNER_FONT_SIZE, SamSettings.SECTION_CUSTOMIZE);
-                BannerFontColorPicker.SelectedColor = (Color)ConvertFromString(settings.FileService.Read(SamSettings.BUTTON_BANNER_FONT_COLOR, SamSettings.SECTION_CUSTOMIZE));
-                HideBanIconsCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.HIDE_BAN_ICONS, SamSettings.SECTION_CUSTOMIZE));
+                ThemeSelectBox.Text = settings.FileService.Read(SamSettings.Theme, SamSettings.SectionCustomize);
+                AccentSelectBox.Text = settings.FileService.Read(SamSettings.Accent, SamSettings.SectionCustomize);
+                buttonSizeSpinBox.Text = settings.FileService.Read(SamSettings.ButtonSize, SamSettings.SectionCustomize);
+                ButtonColorPicker.SelectedColor = (Color)ConvertFromString(settings.FileService.Read(SamSettings.ButtonColor, SamSettings.SectionCustomize));
+                ButtonFontSizeSpinBox.Text = settings.FileService.Read(SamSettings.ButtonFontSize, SamSettings.SectionCustomize);
+                ButtonFontColorPicker.SelectedColor = (Color)ConvertFromString(settings.FileService.Read(SamSettings.ButtonFontColor, SamSettings.SectionCustomize));
+                BannerColorPicker.SelectedColor = (Color)ConvertFromString(settings.FileService.Read(SamSettings.ButtonBannerColor, SamSettings.SectionCustomize));
+                BannerFontSizeSpinBox.Text = settings.FileService.Read(SamSettings.ButtonBannerFontSize, SamSettings.SectionCustomize);
+                BannerFontColorPicker.SelectedColor = (Color)ConvertFromString(settings.FileService.Read(SamSettings.ButtonBannerFontColor, SamSettings.SectionCustomize));
+                HideBanIconsCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.HideBanIcons, SamSettings.SectionCustomize));
 
                 // Steam
-                SteamPathTextBox.Text = settings.FileService.Read(SamSettings.STEAM_PATH, SamSettings.SECTION_STEAM);
-                ApiKeyTextBox.Text = settings.FileService.Read(SamSettings.STEAM_API_KEY, SamSettings.SECTION_STEAM);
-                AutoReloadCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.AUTO_RELOAD_ENABLED, SamSettings.SECTION_STEAM));
-                AutoReloadIntervalSpinBox.Text = settings.FileService.Read(SamSettings.AUTO_RELOAD_INTERVAL, SamSettings.SECTION_STEAM);
+                SteamPathTextBox.Text = settings.FileService.Read(SamSettings.SteamPath, SamSettings.SectionSteam);
+                ApiKeyTextBox.Text = settings.FileService.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+                AutoReloadCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.AutoReloadEnabled, SamSettings.SectionSteam));
+                AutoReloadIntervalSpinBox.Text = settings.FileService.Read(SamSettings.AutoReloadInterval, SamSettings.SectionSteam);
 
                 // Parameters
-                CafeAppLaunchCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CAFE_APP_LAUNCH_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                ClearBetaCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CLEAR_BETA_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                ConsoleCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CONSOLE_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                LoginCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.LOGIN_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                DeveloperCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.DEVELOPER_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                ForceServiceCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.FORCE_SERVICE_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                ConsoleCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.FORCE_SERVICE_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                NoCacheCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.FORCE_SERVICE_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                NoVerifyFilesCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.NO_VERIFY_FILES_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                SilentCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.SILENT_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                SingleCoreCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.SINGLE_CORE_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                TcpCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.TCP_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                TenFootCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.TEN_FOOT_PARAMETER, SamSettings.SECTION_PARAMETERS));
-                CustomParametersCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CUSTOM_PARAMETERS, SamSettings.SECTION_PARAMETERS));
-                CustomParametersTextBox.Text = settings.FileService.Read(SamSettings.CUSTOM_PARAMETERS_VALUE, SamSettings.SECTION_PARAMETERS);
+                CafeAppLaunchCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CafeAppLaunchParameter, SamSettings.SectionParameters));
+                ClearBetaCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.ClearBetaParameter, SamSettings.SectionParameters));
+                ConsoleCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.ConsoleParameter, SamSettings.SectionParameters));
+                LoginCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.LoginParameter, SamSettings.SectionParameters));
+                DeveloperCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.DeveloperParameter, SamSettings.SectionParameters));
+                ForceServiceCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.ForceServiceParameter, SamSettings.SectionParameters));
+                ConsoleCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.ForceServiceParameter, SamSettings.SectionParameters));
+                NoCacheCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.ForceServiceParameter, SamSettings.SectionParameters));
+                NoVerifyFilesCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.NoVerifyFilesParameter, SamSettings.SectionParameters));
+                SilentCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.SilentParameter, SamSettings.SectionParameters));
+                SingleCoreCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.SingleCoreParameter, SamSettings.SectionParameters));
+                TcpCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.TcpParameter, SamSettings.SectionParameters));
+                TenFootCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.TenFootParameter, SamSettings.SectionParameters));
+                CustomParametersCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.CustomParameters, SamSettings.SectionParameters));
+                CustomParametersTextBox.Text = settings.FileService.Read(SamSettings.CustomParametersValue, SamSettings.SectionParameters);
             }
         }
 
         private void SaveSettings(string apr)
         {
-            settings.FileService = new IniFileService(SamSettings.FILE_NAME);
+            settings.FileService = new IniFileService(SamSettings.FileName);
 
-            if (passwordProtectCheckBox.IsChecked == true && !Convert.ToBoolean(settings.FileService.Read(SamSettings.PASSWORD_PROTECT, SamSettings.SECTION_GENERAL)))
+            if (passwordProtectCheckBox.IsChecked == true && !Convert.ToBoolean(settings.FileService.Read(SamSettings.PasswordProtect, SamSettings.SectionGeneral)))
             {
                 var passwordDialog = new PasswordWindow();
 
                 if (passwordDialog.ShowDialog() == true && passwordDialog.PasswordText != "")
                 {
                     Password = passwordDialog.PasswordText;
-                    settings.FileService.Write(SamSettings.PASSWORD_PROTECT, true.ToString(), SamSettings.SECTION_GENERAL);
+                    settings.FileService.Write(SamSettings.PasswordProtect, true.ToString(), SamSettings.SectionGeneral);
                 }
                 else
                 {
                     Password = "";
                 }
             }
-            else if (passwordProtectCheckBox.IsChecked == false && Convert.ToBoolean(settings.FileService.Read(SamSettings.PASSWORD_PROTECT, SamSettings.SECTION_GENERAL)))
+            else if (passwordProtectCheckBox.IsChecked == false && Convert.ToBoolean(settings.FileService.Read(SamSettings.PasswordProtect, SamSettings.SectionGeneral)))
             {
                 var messageBoxResult = MessageBox.Show("Are you sure you want to decrypt your data file?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
@@ -188,25 +188,25 @@ namespace SAM
                     return;
                 }
 
-                settings.FileService.Write(SamSettings.PASSWORD_PROTECT, false.ToString(), SamSettings.SECTION_GENERAL);
+                settings.FileService.Write(SamSettings.PasswordProtect, false.ToString(), SamSettings.SectionGeneral);
                 Password = "";
                 Decrypt = true;
             }
             else if (passwordProtectCheckBox.IsChecked == false)
             {
-                settings.FileService.Write(SamSettings.PASSWORD_PROTECT, false.ToString(), SamSettings.SECTION_GENERAL);
+                settings.FileService.Write(SamSettings.PasswordProtect, false.ToString(), SamSettings.SectionGeneral);
             }
 
             // General
-            settings.FileService.Write(SamSettings.REMEMBER_PASSWORD, rememberLoginPasswordCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.CLEAR_USER_DATA, clearUserDataCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.ACCOUNTS_PER_ROW, apr, SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.SLEEP_TIME, sleepTimeSpinBox.Text, SamSettings.SECTION_GENERAL);
+            settings.FileService.Write(SamSettings.RememberPassword, rememberLoginPasswordCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.ClearUserData, clearUserDataCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.AccountsPerRow, apr, SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.SleepTime, sleepTimeSpinBox.Text, SamSettings.SectionGeneral);
 
             string shortcutAddress = Environment.GetFolderPath(Environment.SpecialFolder.Startup) + SAMshortcut;
             if (startupCheckBox.IsChecked == true)
             {
-                settings.FileService.Write(SamSettings.START_WITH_WINDOWS, true.ToString(), SamSettings.SECTION_GENERAL);
+                settings.FileService.Write(SamSettings.StartWithWindows, true.ToString(), SamSettings.SectionGeneral);
 
                 var shell = new WshShell();
                 var currentAssemblyLocation = Assembly.GetEntryAssembly()!.Location;
@@ -224,57 +224,57 @@ namespace SAM
                 if (System.IO.File.Exists(filePath))
                     System.IO.File.Delete(filePath);
 
-                settings.FileService.Write(SamSettings.START_WITH_WINDOWS, false.ToString(), SamSettings.SECTION_GENERAL);
+                settings.FileService.Write(SamSettings.StartWithWindows, false.ToString(), SamSettings.SectionGeneral);
             }
 
-            settings.FileService.Write(SamSettings.START_MINIMIZED, startupMinCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.MINIMIZE_TO_TRAY, minimizeToTrayCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.HIDE_ADD_BUTTON, HideAddButtonCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.CHECK_FOR_UPDATES, CheckForUpdatesCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.CLOSE_ON_LOGIN, CloseOnLoginCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.LIST_VIEW, ListViewCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
-            settings.FileService.Write(SamSettings.SANDBOX_MODE, SandboxModeCheckBox.IsChecked.ToString(), SamSettings.SECTION_GENERAL);
+            settings.FileService.Write(SamSettings.StartMinimized, startupMinCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.MinimizeToTray, minimizeToTrayCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.HideAddButton, HideAddButtonCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.CheckForUpdates, CheckForUpdatesCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.CloseOnLogin, CloseOnLoginCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.ListView, ListViewCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
+            settings.FileService.Write(SamSettings.SandboxMode, SandboxModeCheckBox.IsChecked.ToString(), SamSettings.SectionGeneral);
 
             // Customize
-            settings.FileService.Write(SamSettings.THEME, ThemeSelectBox.Text, SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.ACCENT, AccentSelectBox.Text, SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.BUTTON_SIZE, buttonSizeSpinBox.Text, SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.BUTTON_COLOR, new ColorConverter().ConvertToString(ButtonColorPicker.SelectedColor), SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.BUTTON_FONT_SIZE, ButtonFontSizeSpinBox.Text, SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.BUTTON_FONT_COLOR, new ColorConverter().ConvertToString(ButtonFontColorPicker.SelectedColor), SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.BUTTON_BANNER_COLOR, new ColorConverter().ConvertToString(BannerColorPicker.SelectedColor), SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.BUTTON_BANNER_FONT_SIZE, BannerFontSizeSpinBox.Text, SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.BUTTON_BANNER_FONT_COLOR, new ColorConverter().ConvertToString(BannerFontColorPicker.SelectedColor), SamSettings.SECTION_CUSTOMIZE);
-            settings.FileService.Write(SamSettings.HIDE_BAN_ICONS, HideBanIconsCheckBox.IsChecked.ToString(), SamSettings.SECTION_CUSTOMIZE);
+            settings.FileService.Write(SamSettings.Theme, ThemeSelectBox.Text, SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.Accent, AccentSelectBox.Text, SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.ButtonSize, buttonSizeSpinBox.Text, SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.ButtonColor, new ColorConverter().ConvertToString(ButtonColorPicker.SelectedColor), SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.ButtonFontSize, ButtonFontSizeSpinBox.Text, SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.ButtonFontColor, new ColorConverter().ConvertToString(ButtonFontColorPicker.SelectedColor), SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.ButtonBannerColor, new ColorConverter().ConvertToString(BannerColorPicker.SelectedColor), SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.ButtonBannerFontSize, BannerFontSizeSpinBox.Text, SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.ButtonBannerFontColor, new ColorConverter().ConvertToString(BannerFontColorPicker.SelectedColor), SamSettings.SectionCustomize);
+            settings.FileService.Write(SamSettings.HideBanIcons, HideBanIconsCheckBox.IsChecked.ToString(), SamSettings.SectionCustomize);
 
             // AutoLog
-            settings.FileService.Write(SamSettings.LOGIN_RECENT_ACCOUNT, mostRecentCheckBox.IsChecked.ToString(), SamSettings.SECTION_AUTOLOG);
-            settings.FileService.Write(SamSettings.LOGIN_SELECTED_ACCOUNT, selectedAccountCheckBox.IsChecked.ToString(), SamSettings.SECTION_AUTOLOG);
-            settings.FileService.Write(SamSettings.INPUT_METHOD, InputMethodSelectBox.SelectedItem.ToString(), SamSettings.SECTION_AUTOLOG);
-            settings.FileService.Write(SamSettings.HANDLE_IME, HandleImeCheckBox.IsChecked.ToString(), SamSettings.SECTION_AUTOLOG);
-            settings.FileService.Write(SamSettings.IME_2FA_ONLY, SteamGuardOnlyCheckBox.IsChecked.ToString(), SamSettings.SECTION_AUTOLOG);
+            settings.FileService.Write(SamSettings.LoginRecentAccount, mostRecentCheckBox.IsChecked.ToString(), SamSettings.SectionAutolog);
+            settings.FileService.Write(SamSettings.LoginSelectedAccount, selectedAccountCheckBox.IsChecked.ToString(), SamSettings.SectionAutolog);
+            settings.FileService.Write(SamSettings.InputMethod, InputMethodSelectBox.SelectedItem.ToString(), SamSettings.SectionAutolog);
+            settings.FileService.Write(SamSettings.HandleIme, HandleImeCheckBox.IsChecked.ToString(), SamSettings.SectionAutolog);
+            settings.FileService.Write(SamSettings.Ime2FaOnly, SteamGuardOnlyCheckBox.IsChecked.ToString(), SamSettings.SectionAutolog);
 
             // Steam
-            settings.FileService.Write(SamSettings.STEAM_PATH, SteamPathTextBox.Text, SamSettings.SECTION_STEAM);
-            settings.FileService.Write(SamSettings.STEAM_API_KEY, Regex.Replace(ApiKeyTextBox.Text, @"\s+", string.Empty), SamSettings.SECTION_STEAM);
-            settings.FileService.Write(SamSettings.AUTO_RELOAD_ENABLED, AutoReloadCheckBox.IsChecked.ToString(), SamSettings.SECTION_STEAM);
-            settings.FileService.Write(SamSettings.AUTO_RELOAD_INTERVAL, AutoReloadIntervalSpinBox.Text, SamSettings.SECTION_STEAM);
+            settings.FileService.Write(SamSettings.SteamPath, SteamPathTextBox.Text, SamSettings.SectionSteam);
+            settings.FileService.Write(SamSettings.SteamApiKey, Regex.Replace(ApiKeyTextBox.Text, @"\s+", string.Empty), SamSettings.SectionSteam);
+            settings.FileService.Write(SamSettings.AutoReloadEnabled, AutoReloadCheckBox.IsChecked.ToString(), SamSettings.SectionSteam);
+            settings.FileService.Write(SamSettings.AutoReloadInterval, AutoReloadIntervalSpinBox.Text, SamSettings.SectionSteam);
 
             // Parameters
-            settings.FileService.Write(SamSettings.CAFE_APP_LAUNCH_PARAMETER, CafeAppLaunchCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.CLEAR_BETA_PARAMETER, ClearBetaCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.CONSOLE_PARAMETER, ConsoleCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.LOGIN_PARAMETER, LoginCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.DEVELOPER_PARAMETER, DeveloperCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.FORCE_SERVICE_PARAMETER, ForceServiceCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.NO_CACHE_PARAMETER, NoCacheCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.NO_VERIFY_FILES_PARAMETER, NoVerifyFilesCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.SILENT_PARAMETER, SilentCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.SINGLE_CORE_PARAMETER, SingleCoreCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.TCP_PARAMETER, TcpCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.TEN_FOOT_PARAMETER, TenFootCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.CUSTOM_PARAMETERS, CustomParametersCheckBox.IsChecked.ToString(), SamSettings.SECTION_PARAMETERS);
-            settings.FileService.Write(SamSettings.CUSTOM_PARAMETERS_VALUE, CustomParametersTextBox.Text, SamSettings.SECTION_PARAMETERS);
+            settings.FileService.Write(SamSettings.CafeAppLaunchParameter, CafeAppLaunchCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.ClearBetaParameter, ClearBetaCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.ConsoleParameter, ConsoleCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.LoginParameter, LoginCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.DeveloperParameter, DeveloperCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.ForceServiceParameter, ForceServiceCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.NoCacheParameter, NoCacheCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.NoVerifyFilesParameter, NoVerifyFilesCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.SilentParameter, SilentCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.SingleCoreParameter, SingleCoreCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.TcpParameter, TcpCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.TenFootParameter, TenFootCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.CustomParameters, CustomParametersCheckBox.IsChecked.ToString(), SamSettings.SectionParameters);
+            settings.FileService.Write(SamSettings.CustomParametersValue, CustomParametersTextBox.Text, SamSettings.SectionParameters);
         }
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
@@ -291,7 +291,7 @@ namespace SAM
         {
             try
             {
-                var idx = int.Parse(settings.FileService.Read(SamSettings.RECENT_ACCOUNT_INDEX, SamSettings.SECTION_AUTOLOG));
+                var idx = int.Parse(settings.FileService.Read(SamSettings.RecentAccountIndex, SamSettings.SectionAutolog));
 
                 // If index is invalid, uncheck box.
                 if (idx < 0)
@@ -321,8 +321,8 @@ namespace SAM
             try
             {
                 // TODO: possible duplicate?
-                var selectedEnabled = Convert.ToBoolean(settings.FileService.Read(SamSettings.LOGIN_SELECTED_ACCOUNT, SamSettings.SECTION_AUTOLOG));
-                var idx = int.Parse(settings.FileService.Read(SamSettings.SELECTED_ACCOUNT_INDEX, SamSettings.SECTION_AUTOLOG));
+                var selectedEnabled = Convert.ToBoolean(settings.FileService.Read(SamSettings.LoginSelectedAccount, SamSettings.SectionAutolog));
+                var idx = int.Parse(settings.FileService.Read(SamSettings.SelectedAccountIndex, SamSettings.SectionAutolog));
 
                 if (selectedEnabled == false || idx < 0)
                 {

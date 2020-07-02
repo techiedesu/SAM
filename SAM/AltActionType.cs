@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SAM
 {
-    class AltActionType
+    internal class AltActionType
     {
-        public const string DELETING = "Deleting";
-        public const string EXPORTING = "Exporting";
+        public const string Deleting = "Deleting";
+        public const string Exporting = "Exporting";
     }
 }

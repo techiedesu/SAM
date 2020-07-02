@@ -48,7 +48,7 @@ namespace SAM
             InitializeComponent();
 
             // If no settings file exists, create one and initialize values.
-            if (!File.Exists(SamSettings.FILE_NAME)) GenerateSettings();
+            if (!File.Exists(SamSettings.FileName)) GenerateSettings();
 
             LoadSettings();
 
@@ -176,9 +176,9 @@ namespace SAM
             var messageBoxResult = MessageBox.Show("Do you want to password protect SAM?", "Protect", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
             if (messageBoxResult == MessageBoxResult.Yes)
-                settings.FileService.Write(SamSettings.PASSWORD_PROTECT, VerifyAndSetPassword(), SamSettings.SECTION_GENERAL);
+                settings.FileService.Write(SamSettings.PasswordProtect, VerifyAndSetPassword(), SamSettings.SectionGeneral);
             else
-                settings.FileService.Write(SamSettings.PASSWORD_PROTECT, false.ToString(), SamSettings.SECTION_GENERAL);
+                settings.FileService.Write(SamSettings.PasswordProtect, false.ToString(), SamSettings.SectionGeneral);
         }
 
         private void LoadSettings()
@@ -197,25 +197,25 @@ namespace SAM
                 else
                     switch (entry.Key)
                     {
-                        case SamSettings.ACCOUNTS_PER_ROW:
-                            var accountsPerRowString = settings.FileService.Read(SamSettings.ACCOUNTS_PER_ROW, SamSettings.SECTION_GENERAL);
+                        case SamSettings.AccountsPerRow:
+                            var accountsPerRowString = settings.FileService.Read(SamSettings.AccountsPerRow, SamSettings.SectionGeneral);
 
                             if (!Regex.IsMatch(accountsPerRowString, @"^\d+$") || int.Parse(accountsPerRowString) < 1)
                             {
-                                settings.FileService.Write(SamSettings.ACCOUNTS_PER_ROW, settings.Default.AccountsPerRow.ToString(), SamSettings.SECTION_GENERAL);
+                                settings.FileService.Write(SamSettings.AccountsPerRow, settings.Default.AccountsPerRow.ToString(), SamSettings.SectionGeneral);
                                 settings.User.AccountsPerRow = settings.Default.AccountsPerRow;
                             }
 
                             settings.User.AccountsPerRow = int.Parse(accountsPerRowString);
                             break;
 
-                        case SamSettings.SLEEP_TIME:
-                            var sleepTimeString = settings.FileService.Read(SamSettings.SLEEP_TIME, SamSettings.SECTION_GENERAL);
+                        case SamSettings.SleepTime:
+                            var sleepTimeString = settings.FileService.Read(SamSettings.SleepTime, SamSettings.SectionGeneral);
                             var sleepTime = 0;
 
                             if (!Regex.IsMatch(sleepTimeString, @"^\d+$") || !int.TryParse(sleepTimeString, out sleepTime) || sleepTime < 0 || sleepTime > 100)
                             {
-                                settings.FileService.Write(SamSettings.SLEEP_TIME, settings.Default.SleepTime.ToString(), SamSettings.SECTION_GENERAL);
+                                settings.FileService.Write(SamSettings.SleepTime, settings.Default.SleepTime.ToString(), SamSettings.SectionGeneral);
                                 settings.User.SleepTime = settings.Default.SleepTime * 1000;
                             }
                             else
@@ -223,19 +223,19 @@ namespace SAM
 
                             break;
 
-                        case SamSettings.START_MINIMIZED:
-                            settings.User.StartMinimized = Convert.ToBoolean(settings.FileService.Read(SamSettings.START_MINIMIZED, SamSettings.SECTION_GENERAL));
+                        case SamSettings.StartMinimized:
+                            settings.User.StartMinimized = Convert.ToBoolean(settings.FileService.Read(SamSettings.StartMinimized, SamSettings.SectionGeneral));
                             if (settings.User.StartMinimized) WindowState = WindowState.Minimized;
                             break;
 
-                        case SamSettings.BUTTON_SIZE:
-                            var buttonSizeString = settings.FileService.Read(SamSettings.BUTTON_SIZE, SamSettings.SECTION_CUSTOMIZE);
+                        case SamSettings.ButtonSize:
+                            var buttonSizeString = settings.FileService.Read(SamSettings.ButtonSize, SamSettings.SectionCustomize);
                             var buttonSize = 0;
 
                             if (!Regex.IsMatch(buttonSizeString, @"^\d+$") || !int.TryParse(buttonSizeString, out buttonSize) || buttonSize < 50 ||
                                 buttonSize > 200)
                             {
-                                settings.FileService.Write(SamSettings.BUTTON_SIZE, "100", SamSettings.SECTION_CUSTOMIZE);
+                                settings.FileService.Write(SamSettings.ButtonSize, "100", SamSettings.SectionCustomize);
                                 settings.User.ButtonSize = 100;
                             }
                             else
@@ -245,9 +245,9 @@ namespace SAM
 
                             break;
 
-                        case SamSettings.INPUT_METHOD:
+                        case SamSettings.InputMethod:
                             settings.User.VirtualInputMethod = (VirtualInputMethod)Enum.Parse(typeof(VirtualInputMethod),
-                                settings.FileService.Read(SamSettings.INPUT_METHOD, SamSettings.SECTION_AUTOLOG));
+                                settings.FileService.Read(SamSettings.InputMethod, SamSettings.SectionAutolog));
                             break;
 
                         default:
@@ -255,7 +255,7 @@ namespace SAM
                             {
                                 case TypeCode.Boolean:
                                     settings.User.KeyValuePairs[entry.Key] = Convert.ToBoolean(settings.FileService.Read(entry.Key, entry.Value));
-                                    if (entry.Value.Equals(SamSettings.SECTION_PARAMETERS) && (bool)settings.User.KeyValuePairs[entry.Key] &&
+                                    if (entry.Value.Equals(SamSettings.SectionParameters) && (bool)settings.User.KeyValuePairs[entry.Key] &&
                                         !entry.Key.StartsWith("custom")) launchParameters.Add("-" + entry.Key);
                                     break;
 
@@ -277,11 +277,11 @@ namespace SAM
             }
 
             //Load and validate saved window location.
-            if (settings.FileService.KeyExists(SamSettings.WINDOW_LEFT, SamSettings.SECTION_LOCATION) &&
-                settings.FileService.KeyExists(SamSettings.WINDOW_TOP, SamSettings.SECTION_LOCATION))
+            if (settings.FileService.KeyExists(SamSettings.WindowLeft, SamSettings.SectionLocation) &&
+                settings.FileService.KeyExists(SamSettings.WindowTop, SamSettings.SectionLocation))
             {
-                Left = double.Parse(settings.FileService.Read(SamSettings.WINDOW_LEFT, SamSettings.SECTION_LOCATION));
-                Top = double.Parse(settings.FileService.Read(SamSettings.WINDOW_TOP, SamSettings.SECTION_LOCATION));
+                Left = double.Parse(settings.FileService.Read(SamSettings.WindowLeft, SamSettings.SectionLocation));
+                Top = double.Parse(settings.FileService.Read(SamSettings.WindowTop, SamSettings.SectionLocation));
                 SetWindowSettingsIntoScreenArea();
             }
             else
@@ -336,7 +336,7 @@ namespace SAM
             ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent(settings.User.Accent), ThemeManager.GetAppTheme(settings.User.Theme));
 
             // Apply theme settings for extended toolkit and tabItem brushes.
-            if (settings.User.Theme == SamSettings.DARK_THEME)
+            if (settings.User.Theme == SamSettings.DarkTheme)
             {
                 Application.Current.Resources["xctkForegoundBrush"] = Brushes.White;
                 Application.Current.Resources["xctkColorPickerBackground"] = new BrushConverter().ConvertFromString("#303030");
@@ -534,7 +534,7 @@ namespace SAM
                 }
             }
 
-            settings.FileService.Write(SamSettings.LAST_AUTO_RELOAD, DateTime.Now.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_STEAM);
+            settings.FileService.Write(SamSettings.LastAutoReload, DateTime.Now.ToString(CultureInfo.InvariantCulture), SamSettings.SectionSteam);
             settings.User.LastAutoReload = DateTime.Now;
 
             SerializeAccounts();
@@ -931,12 +931,12 @@ namespace SAM
             var contextMenu = new ContextMenu();
             var actionMenuItem = new MenuItem();
 
-            if (altActionType == AltActionType.DELETING)
+            if (altActionType == AltActionType.Deleting)
             {
                 actionMenuItem.Header = "Delete Selected";
                 actionMenuItem.Click += delegate { DeleteSelectedAccounts(); };
             }
-            else if (altActionType == AltActionType.EXPORTING)
+            else if (altActionType == AltActionType.Exporting)
             {
                 actionMenuItem.Header = "Export Selected";
                 actionMenuItem.Click += delegate { ExportSelectedAccounts(); };
@@ -973,9 +973,9 @@ namespace SAM
                 // If the auto login checkbox was checked, update settings file and global variables. 
                 if (dialog.AutoLogAccountIndex)
                 {
-                    settings.FileService.Write(SamSettings.SELECTED_ACCOUNT_INDEX, (encryptedAccounts.Count + 1).ToString(), SamSettings.SECTION_AUTOLOG);
-                    settings.FileService.Write(SamSettings.LOGIN_SELECTED_ACCOUNT, true.ToString(), SamSettings.SECTION_AUTOLOG);
-                    settings.FileService.Write(SamSettings.LOGIN_RECENT_ACCOUNT, false.ToString(), SamSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.SelectedAccountIndex, (encryptedAccounts.Count + 1).ToString(), SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.LoginSelectedAccount, true.ToString(), SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.LoginRecentAccount, false.ToString(), SamSettings.SectionAutolog);
                     settings.User.LoginSelectedAccount = true;
                     settings.User.LoginRecentAccount = false;
                     settings.User.SelectedAccountIndex = encryptedAccounts.Count + 1;
@@ -1027,7 +1027,7 @@ namespace SAM
 
             // Reload selected boolean
             settings.User.LoginSelectedAccount =
-                settings.FileService.Read(SamSettings.LOGIN_SELECTED_ACCOUNT, SamSettings.SECTION_AUTOLOG) == true.ToString();
+                settings.FileService.Read(SamSettings.LoginSelectedAccount, SamSettings.SectionAutolog) == true.ToString();
 
             if (settings.User.LoginSelectedAccount && settings.User.SelectedAccountIndex == index)
                 dialog.autoLogCheckBox.IsChecked = true;
@@ -1045,17 +1045,17 @@ namespace SAM
                 // If the auto login checkbox was checked, update settings file and global variables. 
                 if (dialog.AutoLogAccountIndex)
                 {
-                    settings.FileService.Write(SamSettings.SELECTED_ACCOUNT_INDEX, index.ToString(), SamSettings.SECTION_AUTOLOG);
-                    settings.FileService.Write(SamSettings.LOGIN_SELECTED_ACCOUNT, true.ToString(), SamSettings.SECTION_AUTOLOG);
-                    settings.FileService.Write(SamSettings.LOGIN_RECENT_ACCOUNT, false.ToString(), SamSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.SelectedAccountIndex, index.ToString(), SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.LoginSelectedAccount, true.ToString(), SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.LoginRecentAccount, false.ToString(), SamSettings.SectionAutolog);
                     settings.User.LoginSelectedAccount = true;
                     settings.User.LoginRecentAccount = false;
                     settings.User.SelectedAccountIndex = index;
                 }
                 else
                 {
-                    settings.FileService.Write(SamSettings.SELECTED_ACCOUNT_INDEX, "-1", SamSettings.SECTION_AUTOLOG);
-                    settings.FileService.Write(SamSettings.LOGIN_SELECTED_ACCOUNT, false.ToString(), SamSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.SelectedAccountIndex, "-1", SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.LoginSelectedAccount, false.ToString(), SamSettings.SectionAutolog);
                     settings.User.LoginSelectedAccount = false;
                     settings.User.SelectedAccountIndex = -1;
                 }
@@ -1115,7 +1115,7 @@ namespace SAM
 
             // Update the most recently used account index.
             settings.User.RecentAccountIndex = index;
-            settings.FileService.Write(SamSettings.RECENT_ACCOUNT_INDEX, index.ToString(), SamSettings.SECTION_AUTOLOG);
+            settings.FileService.Write(SamSettings.RecentAccountIndex, index.ToString(), SamSettings.SectionAutolog);
 
             // Verify Steam file path.
             settings.User.SteamPath = Utils.CheckSteamPath();
@@ -1442,12 +1442,12 @@ namespace SAM
         {
             if (exporting)
             {
-                GenerateAltActionContextMenu(AltActionType.EXPORTING).IsOpen = true;
+                GenerateAltActionContextMenu(AltActionType.Exporting).IsOpen = true;
                 e.Handled = true;
             }
             else if (deleting)
             {
-                GenerateAltActionContextMenu(AltActionType.DELETING).IsOpen = true;
+                GenerateAltActionContextMenu(AltActionType.Deleting).IsOpen = true;
                 e.Handled = true;
             }
         }
@@ -1557,8 +1557,8 @@ namespace SAM
         {
             if (!isLoadingSettings && settings.FileService != null && IsInBounds())
             {
-                settings.FileService.Write(SamSettings.WINDOW_LEFT, Left.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_LOCATION);
-                settings.FileService.Write(SamSettings.WINDOW_TOP, Top.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_LOCATION);
+                settings.FileService.Write(SamSettings.WindowLeft, Left.ToString(CultureInfo.InvariantCulture), SamSettings.SectionLocation);
+                settings.FileService.Write(SamSettings.WindowTop, Top.ToString(CultureInfo.InvariantCulture), SamSettings.SectionLocation);
             }
         }
 
@@ -1569,8 +1569,8 @@ namespace SAM
                 settings.User.ListViewHeight = Height;
                 settings.User.ListViewWidth = Width;
 
-                settings.FileService.Write(SamSettings.LIST_VIEW_HEIGHT, Height.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_LOCATION);
-                settings.FileService.Write(SamSettings.LIST_VIEW_WIDTH, Width.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_LOCATION);
+                settings.FileService.Write(SamSettings.ListViewHeight, Height.ToString(CultureInfo.InvariantCulture), SamSettings.SectionLocation);
+                settings.FileService.Write(SamSettings.ListViewWidth, Width.ToString(CultureInfo.InvariantCulture), SamSettings.SectionLocation);
             }
         }
 
@@ -1609,7 +1609,7 @@ namespace SAM
         {
             foreach (var column in AccountsDataGrid.Columns)
             {
-                settings.FileService.Write(settings.ListViewColumns[column.Header.ToString()], column.DisplayIndex.ToString(), SamSettings.SECTION_COLUMNS);
+                settings.FileService.Write(settings.ListViewColumns[column.Header.ToString()], column.DisplayIndex.ToString(), SamSettings.SectionColumns);
             }
         }
 
@@ -2248,11 +2248,11 @@ namespace SAM
         {
             if (exporting)
             {
-                AccountsDataGrid.ContextMenu = GenerateAltActionContextMenu(AltActionType.EXPORTING);
+                AccountsDataGrid.ContextMenu = GenerateAltActionContextMenu(AltActionType.Exporting);
             }
             else if (deleting)
             {
-                AccountsDataGrid.ContextMenu = GenerateAltActionContextMenu(AltActionType.DELETING);
+                AccountsDataGrid.ContextMenu = GenerateAltActionContextMenu(AltActionType.Deleting);
             }
             else if (AccountsDataGrid.SelectedItem != null)
             {
