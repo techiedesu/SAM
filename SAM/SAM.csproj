@@ -121,19 +121,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Account.cs" />
+    <Compile Include="Models\Account.cs" />
     <Compile Include="AltActionType.cs" />
     <Compile Include="ExposedInfoWindow.xaml.cs">
       <DependentUpon>ExposedInfoWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="IniFile.cs" />
+    <Compile Include="Services\IniFileService.cs" />
     <Compile Include="VirtualInputMethod.cs" />
     <Compile Include="PriorityMultiValueConverter.cs" />
     <Compile Include="SAMSettings.cs" />
     <Compile Include="SetTimeoutWindow.xaml.cs">
       <DependentUpon>SetTimeoutWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="StringCipher.cs" />
+    <Compile Include="Helpers\StringCipher.cs" />
     <Compile Include="AccountInfoDialog.xaml.cs">
       <DependentUpon>AccountInfoDialog.xaml</DependentUpon>
     </Compile>
@@ -240,6 +240,7 @@
   <ItemGroup>
     <Resource Include="error_red_18dp.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

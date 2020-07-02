@@ -20,6 +20,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
+using SAM.Helpers;
+using SAM.Models;
 using SteamAuth;
 using Application = System.Windows.Application;
 using Button = System.Windows.Controls.Button;
@@ -46,33 +48,34 @@ namespace SAM
             InitializeComponent();
 
             // If no settings file exists, create one and initialize values.
-            if (!File.Exists(SAMSettings.FILE_NAME)) GenerateSettings();
+            if (!File.Exists(SamSettings.FILE_NAME)) GenerateSettings();
 
             LoadSettings();
 
             Loaded += MainWindow_Loaded;
             BackgroundBorder.PreviewMouseLeftButtonDown += (s, e) => { DragMove(); };
 
-            _Timer.Tick += Timer_Tick;
-            _Timer.Interval = 10;
+            _timer.Tick += Timer_Tick;
+            _timer.Interval = 10;
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // Version number from assembly
-            AssemblyVer = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            assemblyVer = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             var ver = new MenuItem();
-            var newExistMenuItem = (MenuItem) FileMenu.Items[2];
-            ver.Header = "v" + AssemblyVer;
+            var newExistMenuItem = (MenuItem)FileMenu.Items[2];
+            ver.Header = "v" + assemblyVer;
             ver.IsEnabled = false;
             newExistMenuItem.Items.Add(ver);
 
             // Delete updater if exists.
-            if (File.Exists("Updater.exe")) File.Delete("Updater.exe");
+            if (File.Exists("Updater.exe"))
+                File.Delete("Updater.exe");
 
             // Check for a new version if enabled.
-            if (settings.User.CheckForUpdates && await UpdateCheck.CheckForUpdate(updateCheckUrl, releasesUrl) == 1)
+            if (settings.User.CheckForUpdates && await UpdateCheck.CheckForUpdate(UpdateCheckUrl, releasesUrl) == 1)
             {
                 // An update is available, but user has chosen not to update.
                 ver.Header = "Update Available!";
@@ -161,26 +164,26 @@ namespace SAM
 
         private void GenerateSettings()
         {
-            settings = new SAMSettings();
+            settings = new SamSettings();
 
-            settings.File.Write("Version", AssemblyVer, "System");
+            settings.FileService.Write("Version", assemblyVer, "System");
 
             foreach (var entry in settings.KeyValuePairs)
             {
-                settings.File.Write(entry.Key, settings.Default.KeyValuePairs[entry.Key].ToString(), entry.Value);
+                settings.FileService.Write(entry.Key, settings.Default.KeyValuePairs[entry.Key].ToString(), entry.Value);
             }
 
             var messageBoxResult = MessageBox.Show("Do you want to password protect SAM?", "Protect", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
             if (messageBoxResult == MessageBoxResult.Yes)
-                settings.File.Write(SAMSettings.PASSWORD_PROTECT, VerifyAndSetPassword(), SAMSettings.SECTION_GENERAL);
+                settings.FileService.Write(SamSettings.PASSWORD_PROTECT, VerifyAndSetPassword(), SamSettings.SECTION_GENERAL);
             else
-                settings.File.Write(SAMSettings.PASSWORD_PROTECT, false.ToString(), SAMSettings.SECTION_GENERAL);
+                settings.FileService.Write(SamSettings.PASSWORD_PROTECT, false.ToString(), SamSettings.SECTION_GENERAL);
         }
 
         private void LoadSettings()
         {
-            settings = new SAMSettings();
+            settings = new SamSettings();
 
             isLoadingSettings = true;
             launchParameters = new List<string>();
@@ -189,30 +192,30 @@ namespace SAM
 
             foreach (var entry in settings.KeyValuePairs)
             {
-                if (!settings.File.KeyExists(entry.Key, entry.Value))
-                    settings.File.Write(entry.Key, settings.Default.KeyValuePairs[entry.Key].ToString(), entry.Value);
+                if (!settings.FileService.KeyExists(entry.Key, entry.Value))
+                    settings.FileService.Write(entry.Key, settings.Default.KeyValuePairs[entry.Key].ToString(), entry.Value);
                 else
                     switch (entry.Key)
                     {
-                        case SAMSettings.ACCOUNTS_PER_ROW:
-                            var accountsPerRowString = settings.File.Read(SAMSettings.ACCOUNTS_PER_ROW, SAMSettings.SECTION_GENERAL);
+                        case SamSettings.ACCOUNTS_PER_ROW:
+                            var accountsPerRowString = settings.FileService.Read(SamSettings.ACCOUNTS_PER_ROW, SamSettings.SECTION_GENERAL);
 
                             if (!Regex.IsMatch(accountsPerRowString, @"^\d+$") || int.Parse(accountsPerRowString) < 1)
                             {
-                                settings.File.Write(SAMSettings.ACCOUNTS_PER_ROW, settings.Default.AccountsPerRow.ToString(), SAMSettings.SECTION_GENERAL);
+                                settings.FileService.Write(SamSettings.ACCOUNTS_PER_ROW, settings.Default.AccountsPerRow.ToString(), SamSettings.SECTION_GENERAL);
                                 settings.User.AccountsPerRow = settings.Default.AccountsPerRow;
                             }
 
                             settings.User.AccountsPerRow = int.Parse(accountsPerRowString);
                             break;
 
-                        case SAMSettings.SLEEP_TIME:
-                            var sleepTimeString = settings.File.Read(SAMSettings.SLEEP_TIME, SAMSettings.SECTION_GENERAL);
+                        case SamSettings.SLEEP_TIME:
+                            var sleepTimeString = settings.FileService.Read(SamSettings.SLEEP_TIME, SamSettings.SECTION_GENERAL);
                             var sleepTime = 0;
 
                             if (!Regex.IsMatch(sleepTimeString, @"^\d+$") || !int.TryParse(sleepTimeString, out sleepTime) || sleepTime < 0 || sleepTime > 100)
                             {
-                                settings.File.Write(SAMSettings.SLEEP_TIME, settings.Default.SleepTime.ToString(), SAMSettings.SECTION_GENERAL);
+                                settings.FileService.Write(SamSettings.SLEEP_TIME, settings.Default.SleepTime.ToString(), SamSettings.SECTION_GENERAL);
                                 settings.User.SleepTime = settings.Default.SleepTime * 1000;
                             }
                             else
@@ -220,19 +223,19 @@ namespace SAM
 
                             break;
 
-                        case SAMSettings.START_MINIMIZED:
-                            settings.User.StartMinimized = Convert.ToBoolean(settings.File.Read(SAMSettings.START_MINIMIZED, SAMSettings.SECTION_GENERAL));
+                        case SamSettings.START_MINIMIZED:
+                            settings.User.StartMinimized = Convert.ToBoolean(settings.FileService.Read(SamSettings.START_MINIMIZED, SamSettings.SECTION_GENERAL));
                             if (settings.User.StartMinimized) WindowState = WindowState.Minimized;
                             break;
 
-                        case SAMSettings.BUTTON_SIZE:
-                            var buttonSizeString = settings.File.Read(SAMSettings.BUTTON_SIZE, SAMSettings.SECTION_CUSTOMIZE);
+                        case SamSettings.BUTTON_SIZE:
+                            var buttonSizeString = settings.FileService.Read(SamSettings.BUTTON_SIZE, SamSettings.SECTION_CUSTOMIZE);
                             var buttonSize = 0;
 
                             if (!Regex.IsMatch(buttonSizeString, @"^\d+$") || !int.TryParse(buttonSizeString, out buttonSize) || buttonSize < 50 ||
                                 buttonSize > 200)
                             {
-                                settings.File.Write(SAMSettings.BUTTON_SIZE, "100", SAMSettings.SECTION_CUSTOMIZE);
+                                settings.FileService.Write(SamSettings.BUTTON_SIZE, "100", SamSettings.SECTION_CUSTOMIZE);
                                 settings.User.ButtonSize = 100;
                             }
                             else
@@ -242,30 +245,30 @@ namespace SAM
 
                             break;
 
-                        case SAMSettings.INPUT_METHOD:
-                            settings.User.VirtualInputMethod = (VirtualInputMethod) Enum.Parse(typeof(VirtualInputMethod),
-                                settings.File.Read(SAMSettings.INPUT_METHOD, SAMSettings.SECTION_AUTOLOG));
+                        case SamSettings.INPUT_METHOD:
+                            settings.User.VirtualInputMethod = (VirtualInputMethod)Enum.Parse(typeof(VirtualInputMethod),
+                                settings.FileService.Read(SamSettings.INPUT_METHOD, SamSettings.SECTION_AUTOLOG));
                             break;
 
                         default:
                             switch (Type.GetTypeCode(settings.User.KeyValuePairs[entry.Key].GetType()))
                             {
                                 case TypeCode.Boolean:
-                                    settings.User.KeyValuePairs[entry.Key] = Convert.ToBoolean(settings.File.Read(entry.Key, entry.Value));
-                                    if (entry.Value.Equals(SAMSettings.SECTION_PARAMETERS) && (bool) settings.User.KeyValuePairs[entry.Key] &&
+                                    settings.User.KeyValuePairs[entry.Key] = Convert.ToBoolean(settings.FileService.Read(entry.Key, entry.Value));
+                                    if (entry.Value.Equals(SamSettings.SECTION_PARAMETERS) && (bool)settings.User.KeyValuePairs[entry.Key] &&
                                         !entry.Key.StartsWith("custom")) launchParameters.Add("-" + entry.Key);
                                     break;
 
                                 case TypeCode.Int32:
-                                    settings.User.KeyValuePairs[entry.Key] = Convert.ToInt32(settings.File.Read(entry.Key, entry.Value));
+                                    settings.User.KeyValuePairs[entry.Key] = Convert.ToInt32(settings.FileService.Read(entry.Key, entry.Value));
                                     break;
 
                                 case TypeCode.Double:
-                                    settings.User.KeyValuePairs[entry.Key] = Convert.ToDouble(settings.File.Read(entry.Key, entry.Value));
+                                    settings.User.KeyValuePairs[entry.Key] = Convert.ToDouble(settings.FileService.Read(entry.Key, entry.Value));
                                     break;
 
                                 default:
-                                    settings.User.KeyValuePairs[entry.Key] = settings.File.Read(entry.Key, entry.Value);
+                                    settings.User.KeyValuePairs[entry.Key] = settings.FileService.Read(entry.Key, entry.Value);
                                     break;
                             }
 
@@ -274,11 +277,11 @@ namespace SAM
             }
 
             //Load and validate saved window location.
-            if (settings.File.KeyExists(SAMSettings.WINDOW_LEFT, SAMSettings.SECTION_LOCATION) &&
-                settings.File.KeyExists(SAMSettings.WINDOW_TOP, SAMSettings.SECTION_LOCATION))
+            if (settings.FileService.KeyExists(SamSettings.WINDOW_LEFT, SamSettings.SECTION_LOCATION) &&
+                settings.FileService.KeyExists(SamSettings.WINDOW_TOP, SamSettings.SECTION_LOCATION))
             {
-                Left = double.Parse(settings.File.Read(SAMSettings.WINDOW_LEFT, SAMSettings.SECTION_LOCATION));
-                Top = double.Parse(settings.File.Read(SAMSettings.WINDOW_TOP, SAMSettings.SECTION_LOCATION));
+                Left = double.Parse(settings.FileService.Read(SamSettings.WINDOW_LEFT, SamSettings.SECTION_LOCATION));
+                Top = double.Parse(settings.FileService.Read(SamSettings.WINDOW_TOP, SamSettings.SECTION_LOCATION));
                 SetWindowSettingsIntoScreenArea();
             }
             else
@@ -295,7 +298,7 @@ namespace SAM
 
                 foreach (var column in AccountsDataGrid.Columns)
                 {
-                    column.DisplayIndex = (int) settings.User.KeyValuePairs[settings.ListViewColumns[column.Header.ToString()]];
+                    column.DisplayIndex = (int)settings.User.KeyValuePairs[settings.ListViewColumns[column.Header.ToString()]];
                 }
 
                 AccountsDataGrid.ItemsSource = encryptedAccounts;
@@ -333,7 +336,7 @@ namespace SAM
             ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent(settings.User.Accent), ThemeManager.GetAppTheme(settings.User.Theme));
 
             // Apply theme settings for extended toolkit and tabItem brushes.
-            if (settings.User.Theme == SAMSettings.DARK_THEME)
+            if (settings.User.Theme == SamSettings.DARK_THEME)
             {
                 Application.Current.Resources["xctkForegoundBrush"] = Brushes.White;
                 Application.Current.Resources["xctkColorPickerBackground"] = new BrushConverter().ConvertFromString("#303030");
@@ -349,7 +352,7 @@ namespace SAM
             if (settings.User.PasswordProtect && ePassword.Length == 0) VerifyAndSetPassword();
 
             Utils.CheckSteamPath();
-            settings.File.Write("Version", AssemblyVer, "System");
+            settings.FileService.Write("Version", assemblyVer, "System");
             isLoadingSettings = false;
         }
 
@@ -415,7 +418,7 @@ namespace SAM
             if (firstLoad && settings.User.AutoReloadEnabled && Utils.ShouldAutoReload(settings.User.LastAutoReload, settings.User.AutoReloadInterval))
             {
                 firstLoad = false;
-                ReloadAccountsAsync();
+                _ = ReloadAccountsAsync();
             }
         }
 
@@ -446,8 +449,8 @@ namespace SAM
                 if (userBanJson != null)
                 {
                     account.CommunityBanned = Convert.ToBoolean(userBanJson.CommunityBanned);
-                    account.VACBanned = Convert.ToBoolean(userBanJson.VACBanned);
-                    account.NumberOfVACBans = Convert.ToInt32(userBanJson.NumberOfVACBans);
+                    account.IsVacBanned = Convert.ToBoolean(userBanJson.VACBanned);
+                    account.NumberOfVacBans = Convert.ToInt32(userBanJson.NumberOfVACBans);
                     account.NumberOfGameBans = Convert.ToInt32(userBanJson.NumberOfGameBans);
                     account.DaysSinceLastBan = Convert.ToInt32(userBanJson.DaysSinceLastBan);
                     account.EconomyBan = userBanJson.EconomyBan;
@@ -521,8 +524,8 @@ namespace SAM
                         if (account != null)
                         {
                             account.CommunityBanned = Convert.ToBoolean(userBanJson.CommunityBanned);
-                            account.VACBanned = Convert.ToBoolean(userBanJson.VACBanned);
-                            account.NumberOfVACBans = Convert.ToInt32(userBanJson.NumberOfVACBans);
+                            account.IsVacBanned = Convert.ToBoolean(userBanJson.VACBanned);
+                            account.NumberOfVacBans = Convert.ToInt32(userBanJson.NumberOfVACBans);
                             account.NumberOfGameBans = Convert.ToInt32(userBanJson.NumberOfGameBans);
                             account.DaysSinceLastBan = Convert.ToInt32(userBanJson.DaysSinceLastBan);
                             account.EconomyBan = userBanJson.EconomyBan;
@@ -531,7 +534,7 @@ namespace SAM
                 }
             }
 
-            settings.File.Write(SAMSettings.LAST_AUTO_RELOAD, DateTime.Now.ToString(CultureInfo.InvariantCulture), SAMSettings.SECTION_STEAM);
+            settings.FileService.Write(SamSettings.LAST_AUTO_RELOAD, DateTime.Now.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_STEAM);
             settings.User.LastAutoReload = DateTime.Now;
 
             SerializeAccounts();
@@ -569,8 +572,15 @@ namespace SAM
 
                         decryptedAccounts.Add(new Account
                         {
-                            Name = account.Name, Alias = account.Alias, Password = tempPass, SharedSecret = temp2fa, ProfUrl = account.ProfUrl,
-                            AviUrl = account.AviUrl, SteamId = steamId, Timeout = account.Timeout, Description = account.Description,
+                            Name = account.Name,
+                            Alias = account.Alias,
+                            Password = tempPass,
+                            SharedSecret = temp2fa,
+                            ProfUrl = account.ProfUrl,
+                            AviUrl = account.AviUrl,
+                            SteamId = steamId,
+                            Timeout = account.Timeout,
+                            Description = account.Description,
                         });
                     }
                 }
@@ -624,7 +634,7 @@ namespace SAM
 
                         var accountImage = new Border();
 
-                        accountButton.Style = (Style) Resources["SAMButtonStyle"];
+                        accountButton.Style = (Style)Resources["SAMButtonStyle"];
                         accountButton.Tag = bCounter.ToString();
 
                         if (!string.IsNullOrEmpty(account.Alias))
@@ -657,8 +667,8 @@ namespace SAM
                         accountText.Margin = new Thickness(0, 0, 0, 7);
                         accountText.Padding = new Thickness(0, 0, 0, 1);
                         accountText.TextAlignment = TextAlignment.Center;
-                        accountText.Foreground = new SolidColorBrush((Color) ColorConverter.ConvertFromString(settings.User.BannerFontColor));
-                        accountText.Background = new SolidColorBrush((Color) ColorConverter.ConvertFromString(settings.User.ButtonBannerColor));
+                        accountText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.BannerFontColor));
+                        accountText.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonBannerColor));
                         accountText.Visibility = Visibility.Collapsed;
 
                         timeoutTextBlock.Width = settings.User.ButtonSize;
@@ -678,8 +688,8 @@ namespace SAM
 
                         if (account.ProfUrl == "" || account.AviUrl == null || account.AviUrl == "" || account.AviUrl == " ")
                         {
-                            accountImage.Background = new SolidColorBrush((Color) ColorConverter.ConvertFromString(settings.User.ButtonColor));
-                            accountButton.Foreground = new SolidColorBrush((Color) ColorConverter.ConvertFromString(settings.User.ButtonFontColor));
+                            accountImage.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonColor));
+                            accountButton.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonFontColor));
                             timeoutTextBlock.Margin = new Thickness(0, 0, 0, 50);
 
                             if (!string.IsNullOrEmpty(account.Alias))
@@ -701,8 +711,8 @@ namespace SAM
                                 // Probably no internet connection or avatar url is bad.
                                 Console.WriteLine("Error: " + m.Message);
 
-                                accountImage.Background = new SolidColorBrush((Color) ColorConverter.ConvertFromString(settings.User.ButtonColor));
-                                accountButton.Foreground = new SolidColorBrush((Color) ColorConverter.ConvertFromString(settings.User.ButtonFontColor));
+                                accountImage.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonColor));
+                                accountButton.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonFontColor));
                                 timeoutTextBlock.Margin = new Thickness(0, 0, 0, 50);
 
                                 if (account.Alias != null && account.Alias.Length > 0)
@@ -717,8 +727,8 @@ namespace SAM
                         accountButton.PreviewMouseLeftButtonUp += AccountButton_MouseUp;
                         //accountButton.PreviewMouseMove += new System.Windows.Input.MouseEventHandler(AccountButton_MouseMove);
                         accountButton.MouseLeave += AccountButton_MouseLeave;
-                        accountButton.MouseEnter += delegate { AccountButton_MouseEnter(accountButton, accountText); };
-                        accountButton.MouseLeave += delegate { AccountButton_MouseLeave(accountButton, accountText); };
+                        accountButton.MouseEnter += delegate { AccountButton_MouseEnter(accountText); };
+                        accountButton.MouseLeave += delegate { AccountButton_MouseLeave(accountText); };
 
                         accountButtonGrid.Children.Add(accountImage);
 
@@ -744,7 +754,7 @@ namespace SAM
                         accountButtonGrid.Children.Add(accountText);
                         accountButtonGrid.Children.Add(accountButton);
 
-                        if (settings.User.HideBanIcons == false && (account.NumberOfVACBans > 0 || account.NumberOfGameBans > 0))
+                        if (settings.User.HideBanIcons == false && (account.NumberOfVacBans > 0 || account.NumberOfGameBans > 0))
                         {
                             var banInfoImage = new Image
                             {
@@ -754,7 +764,7 @@ namespace SAM
                                 Width = 14,
                                 Margin = new Thickness(10, 10, 10, 10),
                                 Source = new BitmapImage(new Uri(@"error_red_18dp.png", UriKind.RelativeOrAbsolute)),
-                                ToolTip = "VAC Bans: " + account.NumberOfVACBans +
+                                ToolTip = "VAC Bans: " + account.NumberOfVacBans +
                                           "\nGame Bans: " + account.NumberOfGameBans +
                                           "\nCommunity Banned: " + account.CommunityBanned +
                                           "\nEconomy Ban: " + account.EconomyBan +
@@ -886,7 +896,10 @@ namespace SAM
             copyProfileUrlItem.Header = "Copy Profile URL";
 
             deleteItem.Click += delegate { DeleteEntry(index); };
-            editItem.Click += delegate { EditEntryAsync(index); };
+            editItem.Click += delegate
+            {
+                var editEntryAsync = EditEntryAsync(index);
+            };
             exportItem.Click += delegate { ExportAccount(index); };
             reloadItem.Click += async delegate { await ReloadAccount_ClickAsync(index); };
             thirtyMinuteTimeoutItem.Click += delegate { AccountButtonSetTimeout_Click(index, DateTime.Now.AddMinutes(30)); };
@@ -929,8 +942,7 @@ namespace SAM
                 actionMenuItem.Click += delegate { ExportSelectedAccounts(); };
             }
 
-            var cancelMenuItem = new MenuItem();
-            cancelMenuItem.Header = "Cancel";
+            var cancelMenuItem = new MenuItem { Header = "Cancel" };
             cancelMenuItem.Click += delegate { ResetFromExportOrDelete(); };
 
             contextMenu.Items.Add(actionMenuItem);
@@ -961,9 +973,9 @@ namespace SAM
                 // If the auto login checkbox was checked, update settings file and global variables. 
                 if (dialog.AutoLogAccountIndex)
                 {
-                    settings.File.Write(SAMSettings.SELECTED_ACCOUNT_INDEX, (encryptedAccounts.Count + 1).ToString(), SAMSettings.SECTION_AUTOLOG);
-                    settings.File.Write(SAMSettings.LOGIN_SELECTED_ACCOUNT, true.ToString(), SAMSettings.SECTION_AUTOLOG);
-                    settings.File.Write(SAMSettings.LOGIN_RECENT_ACCOUNT, false.ToString(), SAMSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.SELECTED_ACCOUNT_INDEX, (encryptedAccounts.Count + 1).ToString(), SamSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.LOGIN_SELECTED_ACCOUNT, true.ToString(), SamSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.LOGIN_RECENT_ACCOUNT, false.ToString(), SamSettings.SECTION_AUTOLOG);
                     settings.User.LoginSelectedAccount = true;
                     settings.User.LoginRecentAccount = false;
                     settings.User.SelectedAccountIndex = encryptedAccounts.Count + 1;
@@ -973,9 +985,14 @@ namespace SAM
                 {
                     var newAccount = new Account
                     {
-                        Name = dialog.AccountText, Alias = dialog.AliasText, Password = StringCipher.Encrypt(password, eKey),
-                        SharedSecret = StringCipher.Encrypt(sharedSecret, eKey), ProfUrl = dialog.UrlText, AviUrl = aviUrl, SteamId = steamId,
-                        Description = dialog.DescriptionText
+                        Name = dialog.AccountText,
+                        Alias = dialog.AliasText,
+                        Password = StringCipher.Encrypt(password, eKey),
+                        SharedSecret = StringCipher.Encrypt(sharedSecret, eKey),
+                        ProfUrl = dialog.UrlText,
+                        AviUrl = aviUrl,
+                        SteamId = steamId,
+                        Description = dialog.DescriptionText,
                     };
 
                     await ReloadAccount(newAccount);
@@ -1008,9 +1025,9 @@ namespace SAM
                 DescriptionText = decryptedAccounts[index].Description,
             };
 
-            // Reload slected boolean
+            // Reload selected boolean
             settings.User.LoginSelectedAccount =
-                settings.File.Read(SAMSettings.LOGIN_SELECTED_ACCOUNT, SAMSettings.SECTION_AUTOLOG) == true.ToString() ? true : false;
+                settings.FileService.Read(SamSettings.LOGIN_SELECTED_ACCOUNT, SamSettings.SECTION_AUTOLOG) == true.ToString();
 
             if (settings.User.LoginSelectedAccount && settings.User.SelectedAccountIndex == index)
                 dialog.autoLogCheckBox.IsChecked = true;
@@ -1028,17 +1045,17 @@ namespace SAM
                 // If the auto login checkbox was checked, update settings file and global variables. 
                 if (dialog.AutoLogAccountIndex)
                 {
-                    settings.File.Write(SAMSettings.SELECTED_ACCOUNT_INDEX, index.ToString(), SAMSettings.SECTION_AUTOLOG);
-                    settings.File.Write(SAMSettings.LOGIN_SELECTED_ACCOUNT, true.ToString(), SAMSettings.SECTION_AUTOLOG);
-                    settings.File.Write(SAMSettings.LOGIN_RECENT_ACCOUNT, false.ToString(), SAMSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.SELECTED_ACCOUNT_INDEX, index.ToString(), SamSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.LOGIN_SELECTED_ACCOUNT, true.ToString(), SamSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.LOGIN_RECENT_ACCOUNT, false.ToString(), SamSettings.SECTION_AUTOLOG);
                     settings.User.LoginSelectedAccount = true;
                     settings.User.LoginRecentAccount = false;
                     settings.User.SelectedAccountIndex = index;
                 }
                 else
                 {
-                    settings.File.Write(SAMSettings.SELECTED_ACCOUNT_INDEX, "-1", SAMSettings.SECTION_AUTOLOG);
-                    settings.File.Write(SAMSettings.LOGIN_SELECTED_ACCOUNT, false.ToString(), SAMSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.SELECTED_ACCOUNT_INDEX, "-1", SamSettings.SECTION_AUTOLOG);
+                    settings.FileService.Write(SamSettings.LOGIN_SELECTED_ACCOUNT, false.ToString(), SamSettings.SECTION_AUTOLOG);
                     settings.User.LoginSelectedAccount = false;
                     settings.User.SelectedAccountIndex = -1;
                 }
@@ -1059,7 +1076,7 @@ namespace SAM
                 catch (Exception m)
                 {
                     MessageBox.Show(m.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    EditEntryAsync(index);
+                    await EditEntryAsync(index);
                 }
             }
         }
@@ -1098,7 +1115,7 @@ namespace SAM
 
             // Update the most recently used account index.
             settings.User.RecentAccountIndex = index;
-            settings.File.Write(SAMSettings.RECENT_ACCOUNT_INDEX, index.ToString(), SAMSettings.SECTION_AUTOLOG);
+            settings.FileService.Write(SamSettings.RECENT_ACCOUNT_INDEX, index.ToString(), SamSettings.SECTION_AUTOLOG);
 
             // Verify Steam file path.
             settings.User.SteamPath = Utils.CheckSteamPath();
@@ -1116,9 +1133,9 @@ namespace SAM
 
                 try
                 {
-                    var SteamProc = Process.GetProcessesByName("Steam")[0];
+                    var steamProc = Process.GetProcessesByName("Steam")[0];
                     Process.Start(stopInfo);
-                    SteamProc.WaitForExit();
+                    steamProc.WaitForExit();
                 }
                 catch
                 {
@@ -1176,8 +1193,8 @@ namespace SAM
             {
                 if (settings.User.RememberPassword) Utils.SetRememeberPasswordKeyValue(1);
 
-                if (decryptedAccounts[index].SharedSecret != null && decryptedAccounts[index].SharedSecret.Length > 0)
-                    Task.Run(() => Type2FA(index, 0));
+                if (!string.IsNullOrEmpty(decryptedAccounts[index].SharedSecret))
+                    Task.Run(() => Type2Fa(index, 0));
                 else
                     PostLogin();
             }
@@ -1279,7 +1296,7 @@ namespace SAM
                     return;
                 }
 
-                Type2FA(index, 0);
+                Type2Fa(index, 0);
             }
             else
             {
@@ -1287,7 +1304,7 @@ namespace SAM
             }
         }
 
-        private void Type2FA(int index, int tryCount)
+        private void Type2Fa(int index, int tryCount)
         {
             // Need both the Steam Login and Steam Guard windows.
             // Can't focus the Steam Guard window directly.
@@ -1326,7 +1343,7 @@ namespace SAM
 
             Thread.Sleep(10);
 
-            foreach (var c in Generate2FACode(decryptedAccounts[index].SharedSecret))
+            foreach (var c in Generate2FaCode(decryptedAccounts[index].SharedSecret))
             {
                 Utils.SetForegroundWindow(steamGuardWindow.RawPtr);
                 Thread.Sleep(10);
@@ -1353,7 +1370,7 @@ namespace SAM
             if (tryCount < maxRetry && steamGuardWindow.IsValid)
             {
                 Console.WriteLine("2FA code failed, retrying...");
-                Type2FA(index, tryCount + 1);
+                Type2Fa(index, tryCount + 1);
                 return;
             }
 
@@ -1362,7 +1379,8 @@ namespace SAM
                 var result = MessageBox.Show("2FA Failed\nPlease wait or bring the Steam Guard\nwindow to the front before clicking OK", "Error",
                     MessageBoxButton.OKCancel, MessageBoxImage.Error);
 
-                if (result == MessageBoxResult.OK) Type2FA(index, tryCount + 1);
+                if (result == MessageBoxResult.OK)
+                    Type2Fa(index, tryCount + 1);
             }
             else if (tryCount == maxRetry + 1 && steamGuardWindow.IsValid)
             {
@@ -1374,11 +1392,14 @@ namespace SAM
 
         private void PostLogin()
         {
-            if (settings.User.ClearUserData) Utils.ClearSteamUserDataFolder(settings.User.SteamPath, settings.User.SleepTime, maxRetry);
-            if (settings.User.CloseOnLogin) Dispatcher.Invoke(delegate { Close(); });
+            if (settings.User.ClearUserData)
+                Utils.ClearSteamUserDataFolder(settings.User.SteamPath, settings.User.SleepTime, maxRetry);
+
+            if (settings.User.CloseOnLogin)
+                Dispatcher.Invoke(Close);
         }
 
-        private string Generate2FACode(string sharedSecret)
+        private string Generate2FaCode(string sharedSecret)
         {
             var authAccount = new SteamGuardAccount { SharedSecret = sharedSecret };
             var code = authAccount.GenerateSteamGuardCode();
@@ -1392,9 +1413,9 @@ namespace SAM
                 encryptedAccounts = type switch
                 {
                     // Alphabetical sort based on account name.
-                    0 => encryptedAccounts.OrderBy(x => x.Name).ToList(),
-                    1 => encryptedAccounts.OrderBy(x => Guid.NewGuid()).ToList(),
-                    _ => encryptedAccounts
+                    0 => encryptedAccounts.OrderBy(a => a.Name).ToList(),
+                    1 => encryptedAccounts.OrderBy(a => Guid.NewGuid()).ToList(),
+                    _ => encryptedAccounts,
                 };
 
                 SerializeAccounts();
@@ -1477,12 +1498,12 @@ namespace SAM
             try
             {
                 if (!File.Exists(dataFile))
-                {
                     return false;
-                }
 
                 var lines = File.ReadAllLines(dataFile);
-                if (lines.Length == 0 || lines.Length > 1) return false;
+                if (lines.Length == 0 || lines.Length > 1)
+                    return false;
+
                 Utils.Deserialize(dataFile);
             }
             catch
@@ -1532,22 +1553,22 @@ namespace SAM
 
         private void Window_LocationChanged(object sender, EventArgs e)
         {
-            if (!isLoadingSettings && settings.File != null && IsInBounds())
+            if (!isLoadingSettings && settings.FileService != null && IsInBounds())
             {
-                settings.File.Write(SAMSettings.WINDOW_LEFT, Left.ToString(), SAMSettings.SECTION_LOCATION);
-                settings.File.Write(SAMSettings.WINDOW_TOP, Top.ToString(), SAMSettings.SECTION_LOCATION);
+                settings.FileService.Write(SamSettings.WINDOW_LEFT, Left.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_LOCATION);
+                settings.FileService.Write(SamSettings.WINDOW_TOP, Top.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_LOCATION);
             }
         }
 
         private void MetroWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (!isLoadingSettings && settings.File != null && settings.User.ListView)
+            if (!isLoadingSettings && settings.FileService != null && settings.User.ListView)
             {
                 settings.User.ListViewHeight = Height;
                 settings.User.ListViewWidth = Width;
 
-                settings.File.Write(SAMSettings.LIST_VIEW_HEIGHT, Height.ToString(), SAMSettings.SECTION_LOCATION);
-                settings.File.Write(SAMSettings.LIST_VIEW_WIDTH, Width.ToString(), SAMSettings.SECTION_LOCATION);
+                settings.FileService.Write(SamSettings.LIST_VIEW_HEIGHT, Height.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_LOCATION);
+                settings.FileService.Write(SamSettings.LIST_VIEW_WIDTH, Width.ToString(CultureInfo.InvariantCulture), SamSettings.SECTION_LOCATION);
             }
         }
 
@@ -1559,14 +1580,16 @@ namespace SAM
 
         private void SetWindowSettingsIntoScreenArea()
         {
-            if (IsInBounds() == false) SetWindowToCenter();
+            if (IsInBounds() == false)
+                SetWindowToCenter();
         }
 
         private bool IsInBounds()
         {
-            foreach (var scrn in Screen.AllScreens)
+            foreach (var screen in Screen.AllScreens)
             {
-                if (scrn.Bounds.Contains((int) Left, (int) Top)) return true;
+                if (screen.Bounds.Contains((int) Left, (int) Top))
+                    return true;
             }
 
             return false;
@@ -1584,13 +1607,13 @@ namespace SAM
         {
             foreach (var column in AccountsDataGrid.Columns)
             {
-                settings.File.Write(settings.ListViewColumns[column.Header.ToString()], column.DisplayIndex.ToString(), SAMSettings.SECTION_COLUMNS);
+                settings.FileService.Write(settings.ListViewColumns[column.Header.ToString()], column.DisplayIndex.ToString(), SamSettings.SECTION_COLUMNS);
             }
         }
 
         private void MainScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            var scv = (ScrollViewer) sender;
+            var scv = (ScrollViewer)sender;
             scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
             e.Handled = true;
         }
@@ -1602,18 +1625,20 @@ namespace SAM
         private static Dictionary<int, Account> exportAccounts;
         private static Dictionary<int, Account> deleteAccounts;
 
-        private static SAMSettings settings;
+        private static SamSettings settings;
 
         private static List<Thread> loginThreads;
         private static List<Timer> timeoutTimers;
 
-        private static readonly string updateCheckUrl = "https://raw.githubusercontent.com/rex706/SAM/master/latest.txt";
+        // TODO: Move to config file.
+        private static readonly string UpdateCheckUrl = "https://raw.githubusercontent.com/rex706/SAM/master/latest.txt";
         private static readonly string repositoryUrl = "https://github.com/rex706/SAM";
         private static readonly string releasesUrl = repositoryUrl + "/releases";
 
         private static bool isLoadingSettings = true;
         private static bool firstLoad = true;
 
+        // TODO: Move to config file.
         private static readonly string dataFile = "info.dat";
 
         // Keys are changed before releases/updates
@@ -1628,7 +1653,7 @@ namespace SAM
         private static double originalWidth;
         private static Thickness initialAddButtonGridMargin;
 
-        private static string AssemblyVer;
+        private static string assemblyVer;
 
         private static bool exporting;
         private static bool deleting;
@@ -1639,52 +1664,52 @@ namespace SAM
 
         private static Timer autoReloadApiTimer;
 
-        private static int maxRetry = 2;
+        private static readonly int maxRetry = 2;
 
         // Resize animation variables
-        private static System.Windows.Forms.Timer _Timer = new System.Windows.Forms.Timer();
+        private static System.Windows.Forms.Timer _timer = new System.Windows.Forms.Timer();
         private int _Stop;
-        private double _RatioHeight;
-        private double _RatioWidth;
-        private double _Height;
-        private double _Width;
+        private double _ratioHeight;
+        private double _ratioWidth;
+        private double _height;
+        private double _width;
 
         #endregion
 
         #region Resize and Resize Timer
 
-        public void Resize(double _PassedHeight, double _PassedWidth)
+        public void Resize(double passedHeight, double passedWidth)
         {
-            _Height = _PassedHeight;
-            _Width = _PassedWidth;
+            _height = passedHeight;
+            _width = passedWidth;
 
-            _Timer.Enabled = true;
-            _Timer.Start();
+            _timer.Enabled = true;
+            _timer.Start();
         }
 
         private void Timer_Tick(object myObject, EventArgs myEventArgs)
         {
             if (_Stop == 0)
             {
-                _RatioHeight = (Height - _Height) / 5 * -1;
-                _RatioWidth = (Width - _Width) / 5 * -1;
+                _ratioHeight = (Height - _height) / 5 * -1;
+                _ratioWidth = (Width - _width) / 5 * -1;
             }
 
             _Stop++;
 
-            Height += _RatioHeight;
-            Width += _RatioWidth;
+            Height += _ratioHeight;
+            Width += _ratioWidth;
 
             if (_Stop == 5)
             {
-                _Timer.Stop();
-                _Timer.Enabled = false;
-                _Timer.Dispose();
+                _timer.Stop();
+                _timer.Enabled = false;
+                _timer.Dispose();
 
                 _Stop = 0;
 
-                Height = _Height;
-                Width = _Width;
+                Height = _height;
+                Width = _width;
 
                 SetMainScrollViewerBarsVisibility(ScrollBarVisibility.Auto);
             }
@@ -1740,12 +1765,12 @@ namespace SAM
             }
         }
 
-        private void AccountButton_MouseLeave(Button accountButton, TextBlock accountText)
+        private void AccountButton_MouseLeave(TextBlock accountText)
         {
             accountText.Visibility = Visibility.Collapsed;
         }
 
-        private void AccountButton_MouseEnter(Button accountButton, TextBlock accountText)
+        private void AccountButton_MouseEnter(TextBlock accountText)
         {
             accountText.Visibility = Visibility.Visible;
         }
@@ -1760,8 +1785,8 @@ namespace SAM
 
                 var mousePoint = e.GetPosition(this);
 
-                var marginLeft = (int) mousePoint.X - (int) btn.Width / 2;
-                var marginTop = (int) mousePoint.Y - (int) btn.Height / 2;
+                var marginLeft = (int)mousePoint.X - (int)btn.Width / 2;
+                var marginTop = (int)mousePoint.Y - (int)btn.Height / 2;
 
                 btn.Margin = new Thickness(marginLeft, marginTop, 0, 0);
             }
@@ -1886,7 +1911,7 @@ namespace SAM
 
                 foreach (var account in encryptedAccounts)
                 {
-                    if (account.NumberOfVACBans > 0 || account.NumberOfGameBans > 0) accountsToDelete.Add(account);
+                    if (account.NumberOfVacBans > 0 || account.NumberOfGameBans > 0) accountsToDelete.Add(account);
                 }
 
                 foreach (var account in accountsToDelete)
@@ -1905,7 +1930,7 @@ namespace SAM
 
         private async void Ver_Click(object sender, RoutedEventArgs e)
         {
-            if (await UpdateCheck.CheckForUpdate(updateCheckUrl, repositoryUrl) < 1)
+            if (await UpdateCheck.CheckForUpdate(UpdateCheckUrl, repositoryUrl) < 1)
                 MessageBox.Show(Process.GetCurrentProcess().ProcessName + " is up to date!");
         }
 
@@ -2023,7 +2048,7 @@ namespace SAM
                 {
                     var accountButton = accountButtonGrid.Children.OfType<Button>().FirstOrDefault();
 
-                    accountButton.Style = (Style) Resources["ExportButtonStyle"];
+                    accountButton.Style = (Style)Resources["ExportButtonStyle"];
                     accountButton.Click -= AccountButton_Click;
                     accountButton.Click += AccountButtonExport_Click;
                     accountButton.PreviewMouseLeftButtonDown -= AccountButton_MouseDown;
@@ -2109,7 +2134,7 @@ namespace SAM
                 {
                     var accountButton = accountButtonGrid.Children.OfType<Button>().FirstOrDefault();
 
-                    accountButton.Style = (Style) Resources["DeleteButtonStyle"];
+                    accountButton.Style = (Style)Resources["DeleteButtonStyle"];
                     accountButton.Click -= AccountButton_Click;
                     accountButton.Click += AccountButtonDelete_Click;
                     accountButton.PreviewMouseLeftButtonDown -= AccountButton_MouseDown;
@@ -2199,7 +2224,7 @@ namespace SAM
                 {
                     var accountButton = accountButtonGrid.Children.OfType<Button>().FirstOrDefault();
 
-                    accountButton.Style = (Style) Resources["SAMButtonStyle"];
+                    accountButton.Style = (Style)Resources["SAMButtonStyle"];
                     accountButton.Click -= AccountButtonExport_Click;
                     accountButton.Click -= AccountButtonDelete_Click;
                     accountButton.Click += AccountButton_Click;
@@ -2245,7 +2270,7 @@ namespace SAM
 
         private void AccountsDataGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var depObject = (DependencyObject) e.OriginalSource;
+            var depObject = (DependencyObject)e.OriginalSource;
 
             while (depObject != null && !(depObject is DataGridColumnHeader) && !(depObject is DataGridRow))
             {

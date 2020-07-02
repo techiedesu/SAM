@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using SAM.Services;
 
 namespace SAM
 {
-    class SAMSettings
+    class SamSettings
     {
         public const string FILE_NAME = "SAMSettings.ini";
 
@@ -14,7 +15,7 @@ namespace SAM
         public const string SECTION_LOCATION = "Location";
         public const string SECTION_COLUMNS = "Columns";
 
-        public IniFile File = new IniFile(FILE_NAME);
+        public IniFileService FileService = new IniFileService(FILE_NAME);
         public UserSettings User = new UserSettings();
         public readonly UserSettings Default = new UserSettings();
 
@@ -170,39 +171,39 @@ namespace SAM
         public void HandleDeprecatedSettings()
         {
             // Update Recent and Selected login setting names.
-            if (File.KeyExists("Recent", SECTION_AUTOLOG))
+            if (FileService.KeyExists("Recent", SECTION_AUTOLOG))
             {
-                File.Write(LOGIN_RECENT_ACCOUNT, File.Read("Recent", SECTION_AUTOLOG), SECTION_AUTOLOG);
-                File.DeleteKey("Recent", SECTION_AUTOLOG);
+                FileService.Write(LOGIN_RECENT_ACCOUNT, FileService.Read("Recent", SECTION_AUTOLOG), SECTION_AUTOLOG);
+                FileService.DeleteKey("Recent", SECTION_AUTOLOG);
             }
-            if (File.KeyExists("RecentAcc", SECTION_AUTOLOG))
+            if (FileService.KeyExists("RecentAcc", SECTION_AUTOLOG))
             {
-                File.Write(RECENT_ACCOUNT_INDEX, File.Read("RecentAcc", SECTION_AUTOLOG), SECTION_AUTOLOG);
-                File.DeleteKey("RecentAcc", SECTION_AUTOLOG);
+                FileService.Write(RECENT_ACCOUNT_INDEX, FileService.Read("RecentAcc", SECTION_AUTOLOG), SECTION_AUTOLOG);
+                FileService.DeleteKey("RecentAcc", SECTION_AUTOLOG);
             }
-            if (File.KeyExists("Selected", SECTION_AUTOLOG))
+            if (FileService.KeyExists("Selected", SECTION_AUTOLOG))
             {
-                File.Write(LOGIN_SELECTED_ACCOUNT, File.Read("Selected", SECTION_AUTOLOG), SECTION_AUTOLOG);
-                File.DeleteKey("Selected", SECTION_AUTOLOG);
+                FileService.Write(LOGIN_SELECTED_ACCOUNT, FileService.Read("Selected", SECTION_AUTOLOG), SECTION_AUTOLOG);
+                FileService.DeleteKey("Selected", SECTION_AUTOLOG);
             }
-            if (File.KeyExists("SelectedAcc", SECTION_AUTOLOG))
+            if (FileService.KeyExists("SelectedAcc", SECTION_AUTOLOG))
             {
-                File.Write(SELECTED_ACCOUNT_INDEX, File.Read("SelectedAcc", SECTION_AUTOLOG), SECTION_AUTOLOG);
-                File.DeleteKey("SelectedAcc", SECTION_AUTOLOG);
+                FileService.Write(SELECTED_ACCOUNT_INDEX, FileService.Read("SelectedAcc", SECTION_AUTOLOG), SECTION_AUTOLOG);
+                FileService.DeleteKey("SelectedAcc", SECTION_AUTOLOG);
             }
 
             // Move Steam file path to it's own section.
-            if (File.KeyExists(SECTION_STEAM, SECTION_GENERAL))
+            if (FileService.KeyExists(SECTION_STEAM, SECTION_GENERAL))
             {
-                File.Write(STEAM_PATH, File.Read(SECTION_STEAM, SECTION_GENERAL), SECTION_STEAM);
-                File.DeleteKey(SECTION_STEAM, SECTION_GENERAL);
+                FileService.Write(STEAM_PATH, FileService.Read(SECTION_STEAM, SECTION_GENERAL), SECTION_STEAM);
+                FileService.DeleteKey(SECTION_STEAM, SECTION_GENERAL);
             }
 
             // Move button size to 'Customize' section.
-            if (File.KeyExists(BUTTON_SIZE, SECTION_GENERAL))
+            if (FileService.KeyExists(BUTTON_SIZE, SECTION_GENERAL))
             {
-                File.Write(BUTTON_SIZE, File.Read(BUTTON_SIZE, SECTION_GENERAL), SECTION_CUSTOMIZE);
-                File.DeleteKey(BUTTON_SIZE, SECTION_GENERAL);
+                FileService.Write(BUTTON_SIZE, FileService.Read(BUTTON_SIZE, SECTION_GENERAL), SECTION_CUSTOMIZE);
+                FileService.DeleteKey(BUTTON_SIZE, SECTION_GENERAL);
             }
         }
     }
