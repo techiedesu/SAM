@@ -410,8 +410,8 @@ namespace SAM
             mostRecentCheckBox.IsChecked = settings.Default.LoginRecentAccount;
             selectedAccountCheckBox.IsChecked = settings.Default.LoginSelectedAccount;
             InputMethodSelectBox.SelectedItem = settings.Default.VirtualInputMethod;
-            HandleImeCheckBox.IsChecked = settings.Default.HandleMicrosoftIME;
-            SteamGuardOnlyCheckBox.IsChecked = settings.Default.IME2FAOnly;
+            HandleImeCheckBox.IsChecked = settings.Default.HandleMicrosoftIme;
+            SteamGuardOnlyCheckBox.IsChecked = settings.Default.Ime2FaOnly;
             
             SteamPathTextBox.Text = Utils.CheckSteamPath();
             ApiKeyTextBox.Text = settings.Default.ApiKey;

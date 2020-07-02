@@ -16,6 +16,7 @@ using Win32Interop.WinHandles;
 using System.Diagnostics;
 using System.Threading;
 using System.Runtime.InteropServices;
+using SAM.Extensions;
 using SAM.Helpers;
 using SAM.Models;
 using SAM.Services;
@@ -60,7 +61,6 @@ namespace SAM
         public const int VkSpace = 0x20;
 
         public const int ApiKeyLength = 32;
-        private static readonly char[] SpecialChars = { '{', '}', '(', ')', '[', ']', '+', '^', '%', '~' };
 
         public static void Serialize(List<Account> accounts)
         {
@@ -100,7 +100,7 @@ namespace SAM
                 MessageBox.Show(ex.Message);
             }
 
-            return (List<Account>) obj;
+            return (List<Account>)obj;
         }
 
         public static List<Account> PasswordDeserialize(string file, string password)
@@ -124,10 +124,10 @@ namespace SAM
                 MessageBox.Show(e.Message);
             }
 
-            return (List<Account>) obj;
+            return (List<Account>)obj;
         }
 
-        public static void ImportAccountsFromList(List<Account> accounts)
+        public static void ImportAccountsFromList(IEnumerable<Account> accounts)
         {
             try
             {
@@ -135,9 +135,9 @@ namespace SAM
                 Serialize(MainWindow.encryptedAccounts);
                 MessageBox.Show("Account(s) imported!");
             }
-            catch (Exception m)
+            catch (Exception ex)
             {
-                MessageBox.Show(m.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -209,64 +209,20 @@ namespace SAM
             }
         }
 
-        public static string GetSteamPathFromRegistry()
+        public static void SetRememberPasswordKeyValue(int value)
         {
-            var registryValue = string.Empty;
-            RegistryKey localKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, Environment.Is64BitOperatingSystem
-        ? RegistryView.Registry64 : RegistryView.Registry32);
             try
             {
-                localKey = localKey.OpenSubKey(@"Software\\Valve\\Steam");
-                registryValue = localKey.GetValue("SteamPath") + "/";
-            }
-            catch (NullReferenceException nre)
-            {
-                Console.WriteLine(nre.Message);
-            }
+                var (hasValue, registryKey) = SteamHelper.TryGetRegistry();
 
-            return registryValue;
-        }
+                if (!hasValue)
+                    throw new Exception();
 
-        public static void ClearAutoLoginUserKeyValues()
-        {
-            RegistryKey localKey;
-
-            localKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32);
-
-            try
-            {
-                localKey = localKey.OpenSubKey(@"Software\\Valve\\Steam", true);
-                localKey.SetValue("AutoLoginUser", "", RegistryValueKind.String);
-                localKey.SetValue("RememberPassword", 0, RegistryValueKind.DWord);
+                registryKey.SetValue("RememberPassword", value, RegistryValueKind.DWord);
             }
-            catch (NullReferenceException nre)
+            catch (Exception ex)
             {
-                Console.WriteLine(nre.Message);
-            }
-        }
-
-        public static void SetRememeberPasswordKeyValue(int value)
-        {
-            string registryValue = string.Empty;
-            RegistryKey localKey = null;
-
-            if (Environment.Is64BitOperatingSystem)
-            {
-                localKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-            }
-            else
-            {
-                localKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-            }
-
-            try
-            {
-                localKey = localKey.OpenSubKey(@"Software\\Valve\\Steam", true);
-                localKey.SetValue("RememberPassword", value, RegistryValueKind.DWord);
-            }
-            catch (NullReferenceException nre)
-            {
-                Console.WriteLine(nre.Message);
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -282,7 +238,7 @@ namespace SAM
             while (steamPath == null || !File.Exists(steamPath + "\\steam.exe"))
             {
                 // Check registry keys first.
-                var regPath = GetSteamPathFromRegistry();
+                var regPath = SteamHelper.GetSteamPathFromRegistry();
                 var localPath = System.Windows.Forms.Application.StartupPath;
 
                 if (Directory.Exists(regPath))
@@ -327,9 +283,7 @@ namespace SAM
                     var messageBoxResult = MessageBox.Show("Steam path required!\n\nTry again?", "Confirm", MessageBoxButton.YesNo);
 
                     if (messageBoxResult.Equals(MessageBoxResult.No))
-                    {
                         Environment.Exit(0);
-                    }
                 }
 
                 tryCount++;
@@ -339,24 +293,6 @@ namespace SAM
             settingsFile.Write(SamSettings.SteamPath, steamPath, SamSettings.SectionSteam);
 
             return steamPath;
-        }
-
-        public static List<string> GetSteamIdsFromConfig(List<Account> accounts)
-        {
-            var steamIds = new List<string>();
-
-            foreach (var account in accounts)
-            {
-                var steamId = GetSteamIdFromConfig(account.Name);
-
-                if (!string.IsNullOrEmpty(steamId))
-                {
-                    account.SteamId = steamId;
-                    steamIds.Add(steamId);
-                }
-            }
-
-            return steamIds;
         }
 
         public static async Task<string> GetSteamIdFromProfileUrl(string url)
@@ -385,7 +321,7 @@ namespace SAM
                             }
                             catch
                             {
-
+                                // ignored
                             }
                         }
                     }
@@ -403,7 +339,7 @@ namespace SAM
                         }
                         catch
                         {
-
+                            // ignored
                         }
                     }
                 }
@@ -425,9 +361,8 @@ namespace SAM
                 var accounts = config.Value.Software.Valve.Steam.Accounts;
 
                 VObject accountsObj = accounts;
-                VToken value;
 
-                accountsObj.TryGetValue(userName, out value);
+                accountsObj.TryGetValue(userName, out var value);
 
                 dynamic user = value;
                 VValue userId = user.SteamID;
@@ -457,7 +392,7 @@ namespace SAM
         public static async Task<dynamic> GetUserInfoFromWebApiBySteamId(string steamId)
         {
             var settingsFile = new IniFileService(SamSettings.FileName);
-            string apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
 
             dynamic userJson = null;
 
@@ -465,17 +400,15 @@ namespace SAM
             {
                 try
                 {
-                    Uri userUri = new Uri("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + apiKey + "&steamids=" + steamId);
+                    var userUri = new Uri("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + apiKey + "&steamids=" + steamId);
 
-                    using (WebClient client = new WebClient())
-                    {
-                        string userJsonString = await client.DownloadStringTaskAsync(userUri);
-                        userJson = JValue.Parse(userJsonString);
-                    }
+                    using var client = new WebClient();
+                    var userJsonString = await client.DownloadStringTaskAsync(userUri);
+                    userJson = JToken.Parse(userJsonString);
                 }
-                catch (Exception m)
+                catch (Exception ex)
                 {
-                    MessageBox.Show(m.Message);
+                    MessageBox.Show(ex.Message);
                 }
             }
 
@@ -507,7 +440,7 @@ namespace SAM
                         steamIds.Clear();
                     }
 
-                    string currentIds = String.Join(",", currentChunk);
+                    var currentIds = string.Join(",", currentChunk);
 
                     try
                     {
@@ -515,12 +448,12 @@ namespace SAM
 
                         using var client = new WebClient();
                         var userJsonString = await client.DownloadStringTaskAsync(userUri);
-                        dynamic userInfoJson = JValue.Parse(userJsonString);
+                        dynamic userInfoJson = JToken.Parse(userJsonString);
                         userInfos.Add(userInfoJson);
                     }
-                    catch (Exception m)
+                    catch (Exception ex)
                     {
-                        MessageBox.Show(m.Message);
+                        MessageBox.Show(ex.Message);
                     }
                 }
             }
@@ -543,11 +476,11 @@ namespace SAM
 
                     using var client = new WebClient();
                     var userJsonString = await client.DownloadStringTaskAsync(userUri);
-                    userInfoJson = JValue.Parse(userJsonString);
+                    userInfoJson = JToken.Parse(userJsonString);
                 }
-                catch (Exception m)
+                catch (Exception ex)
                 {
-                    MessageBox.Show(m.Message);
+                    MessageBox.Show(ex.Message);
                 }
             }
 
@@ -556,26 +489,19 @@ namespace SAM
 
         public static async Task<dynamic> GetPlayerBansFromWebApi(string steamId)
         {
-            List<dynamic> userBansJson = await GetPlayerBansFromWebApi(new List<string>() { steamId });
+            var userBansJson = await GetPlayerBansFromWebApi(new List<string> { steamId });
 
-            if (userBansJson.Count > 0)
-            {
-                return userBansJson[0].players[0];
-            }
-            else
-            {
-                return null;
-            }
+            return userBansJson.Any() ? userBansJson[0].players[0] : null;
         }
 
         public static async Task<List<dynamic>> GetPlayerBansFromWebApi(List<string> steamIds)
         {
             var settingsFile = new IniFileService(SamSettings.FileName);
-            string apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
 
-            List<dynamic> userBans = new List<dynamic>();
+            var userBans = new List<dynamic>();
 
-            if (ApiKeyExists() == true)
+            if (ApiKeyExists())
             {
                 while (steamIds.Count > 0)
                 {
@@ -593,18 +519,16 @@ namespace SAM
                         steamIds.Clear();
                     }
 
-                    string currentIds = String.Join(",", currentChunk);
+                    var currentIds = string.Join(",", currentChunk);
 
                     try
                     {
                         Uri userUri = new Uri("http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=" + apiKey + "&steamids=" + currentIds);
 
-                        using (WebClient client = new WebClient())
-                        {
-                            string userJsonString = await client.DownloadStringTaskAsync(userUri);
-                            dynamic userInfoJson = JValue.Parse(userJsonString);
-                            userBans.Add(userInfoJson);
-                        }
+                        using var client = new WebClient();
+                        var userJsonString = await client.DownloadStringTaskAsync(userUri);
+                        dynamic userInfoJson = JToken.Parse(userJsonString);
+                        userBans.Add(userInfoJson);
                     }
                     catch (Exception m)
                     {
@@ -645,39 +569,14 @@ namespace SAM
             return "";
         }
 
-        public static string FormatTimespanString(TimeSpan time)
-        {
-            int years = time.Days / 365;
-            int days = time.Days;
-
-            if (years > 0)
-            {
-                days = (time.Days / (years * 365));
-            }
-
-            return years.ToString("D2") + ":" + days.ToString("D2") + ":" + time.ToString(@"hh\:mm\:ss");
-        }
-
-        public static bool AccountHasActiveTimeout(Account account)
-        {
-            if (account.Timeout == null || account.Timeout == new DateTime() || account.Timeout.Value.CompareTo(DateTime.Now) <= 0)
-            {
-                account.Timeout = null;
-                account.TimeoutTimeLeft = null;
-                return false;
-            }
-
-            return true;
-        }
-
         public static WindowHandle GetSteamLoginWindow()
         {
             return TopLevelWindowUtils.FindWindow(wh =>
-            wh.GetClassName().Equals("vguiPopupWindow") &&
-            (wh.GetWindowText().Contains("Steam") &&
-            !wh.GetWindowText().Contains("-") &&
-            !wh.GetWindowText().Contains("—") &&
-             wh.GetWindowText().Length > 5));
+            wh.GetClassName().Equals("vguiPopupWindow")
+            && wh.GetWindowText().Contains("Steam")
+            && !wh.GetWindowText().Contains("-")
+            && !wh.GetWindowText().Contains("—")
+            && wh.GetWindowText().Length > 5);
         }
 
         public static WindowHandle GetSteamGuardWindow()
@@ -707,8 +606,7 @@ namespace SAM
             Console.WriteLine("Waiting for it to be idle.");
             while (process == null)
             {
-                int procId = 0;
-                GetWindowThreadProcessId(windowHandle.RawPtr, out procId);
+                GetWindowThreadProcessId(windowHandle.RawPtr, out var procId);
 
                 // Wait for valid process id from handle.
                 while (procId == 0)
@@ -743,37 +641,37 @@ namespace SAM
         public static void SendCapsLockGlobally()
         {
             // Press key down
-            keybd_event((byte)System.Windows.Forms.Keys.CapsLock, 0, 0, 0);
+            keybd_event((byte) System.Windows.Forms.Keys.CapsLock, 0, 0, 0);
             // Press key up
-            keybd_event((byte)System.Windows.Forms.Keys.CapsLock, 0, 0x2, 0);
+            keybd_event((byte) System.Windows.Forms.Keys.CapsLock, 0, 0x2, 0);
         }
 
-        public static void SendCharacter(IntPtr hwnd, VirtualInputMethod inputMethod, char c)
+        public static void SendCharacter(IntPtr hwnd, VirtualInputMethod inputMethod, char @char)
         {
             switch (inputMethod)
             {
                 case VirtualInputMethod.SendMessage:
-                    SendMessage(hwnd, WmChar, c, IntPtr.Zero);
+                    SendMessage(hwnd, WmChar, @char, IntPtr.Zero);
                     break;
 
                 case VirtualInputMethod.PostMessage:
-                    PostMessage(hwnd, WmChar, (IntPtr) c, IntPtr.Zero);
+                    PostMessage(hwnd, WmChar, (IntPtr)@char, IntPtr.Zero);
                     break;
 
                 default:
-                    if (Utils.IsSpecialCharacter(c))
+                    if (@char.IsSpecial())
                     {
                         if (inputMethod == VirtualInputMethod.SendWait)
-                            System.Windows.Forms.SendKeys.SendWait($"{{{c}}}");
+                            System.Windows.Forms.SendKeys.SendWait($"{{{@char}}}");
                         else
-                            System.Windows.Forms.SendKeys.Send($"{{{c}}}");
+                            System.Windows.Forms.SendKeys.Send($"{{{@char}}}");
                     }
                     else
                     {
                         if (inputMethod == VirtualInputMethod.SendWait)
-                            System.Windows.Forms.SendKeys.SendWait(c.ToString());
+                            System.Windows.Forms.SendKeys.SendWait(@char.ToString());
                         else
-                            System.Windows.Forms.SendKeys.Send(c.ToString());
+                            System.Windows.Forms.SendKeys.Send(@char.ToString());
                     }
                     break;
             }
@@ -789,8 +687,8 @@ namespace SAM
                     break;
 
                 case VirtualInputMethod.PostMessage:
-                    PostMessage(hwnd, WmKeydown, (IntPtr)VkReturn, IntPtr.Zero);
-                    PostMessage(hwnd, WmKeyup, (IntPtr)VkReturn, IntPtr.Zero);
+                    PostMessage(hwnd, WmKeydown, (IntPtr) VkReturn, IntPtr.Zero);
+                    PostMessage(hwnd, WmKeyup, (IntPtr) VkReturn, IntPtr.Zero);
                     break;
 
                 case VirtualInputMethod.SendWait:
@@ -809,8 +707,8 @@ namespace SAM
                     break;
 
                 case VirtualInputMethod.PostMessage:
-                    PostMessage(hwnd, WmKeydown, (IntPtr) VkTab, IntPtr.Zero);
-                    PostMessage(hwnd, WmKeyup, (IntPtr) VkTab, IntPtr.Zero);
+                    PostMessage(hwnd, WmKeydown, (IntPtr)VkTab, IntPtr.Zero);
+                    PostMessage(hwnd, WmKeyup, (IntPtr)VkTab, IntPtr.Zero);
                     break;
 
                 case VirtualInputMethod.SendWait:
@@ -841,8 +739,8 @@ namespace SAM
 
         public static void ClearSteamUserDataFolder(string steamPath, int sleepTime, int maxRetry)
         {
-            WindowHandle steamLoginWindow = GetSteamLoginWindow();
-            int waitCount = 0;
+            var steamLoginWindow = GetSteamLoginWindow();
+            var waitCount = 0;
 
             while (steamLoginWindow.IsValid && waitCount < maxRetry)
             {
@@ -850,7 +748,7 @@ namespace SAM
                 waitCount++;
             }
 
-            string path = steamPath + "\\userdata";
+            var path = $"{steamPath}\\userdata";
 
             if (Directory.Exists(path))
             {
@@ -867,7 +765,7 @@ namespace SAM
         public static bool ApiKeyExists()
         {
             var settingsFile = new IniFileService(SamSettings.FileName);
-            string apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
             return apiKey != null && apiKey.Length == ApiKeyLength;
         }
 
@@ -881,23 +779,6 @@ namespace SAM
             return offset.CompareTo(DateTime.Now) <= 0;
         }
 
-        public static bool IsSpecialCharacter(char c)
-        {
-            foreach (var special in SpecialChars)
-            {
-                if (c.Equals(special))
-                    return true;
-            }
-
-            return false;
-        }
-
-        public static string RandomString(int length)
-        {
-            var random = new Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-
-            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+        
     }
 }

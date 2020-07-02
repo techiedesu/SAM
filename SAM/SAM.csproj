@@ -67,6 +67,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Extensions\AccountExtensions.cs" />
+    <Compile Include="Extensions\CharExtensions.cs" />
+    <Compile Include="Extensions\TimeSpanExtensions.cs" />
+    <Compile Include="Helpers\SteamHelper.cs" />
     <Compile Include="Models\Account.cs" />
     <Compile Include="AltActionType.cs" />
     <Compile Include="ExposedInfoWindow.xaml.cs">
@@ -75,7 +79,7 @@
     <Compile Include="Services\IniFileService.cs" />
     <Compile Include="VirtualInputMethod.cs" />
     <Compile Include="PriorityMultiValueConverter.cs" />
-    <Compile Include="SAMSettings.cs" />
+    <Compile Include="SamSettings.cs" />
     <Compile Include="SetTimeoutWindow.xaml.cs">
       <DependentUpon>SetTimeoutWindow.xaml</DependentUpon>
     </Compile>
@@ -86,7 +90,7 @@
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UpdateCheck.cs" />
+    <Compile Include="Services\UpdateService.cs" />
     <Compile Include="UserSettings.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="PasswordWindow.xaml.cs">
@@ -190,24 +194,24 @@
       <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="Extended.Wpf.Toolkit">
-      <Version>3.8.1</Version>
+      <Version>4.0.0</Version>
     </PackageReference>
     <PackageReference Include="Fody">
-      <Version>6.1.1</Version>
+      <Version>6.2.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Gameloop.Vdf">
-      <Version>0.5.0</Version>
+      <Version>0.6.1</Version>
     </PackageReference>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf">
       <Version>1.0.8</Version>
     </PackageReference>
     <PackageReference Include="HtmlAgilityPack">
-      <Version>1.11.21</Version>
+      <Version>1.11.24</Version>
     </PackageReference>
     <PackageReference Include="MahApps.Metro">
-      <Version>1.6.5</Version>
+      <Version>2.1.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Bcl.Build">
       <Version>1.0.21</Version>
@@ -225,6 +229,7 @@
       <Version>2.0.0</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -92,7 +92,7 @@ namespace SAM
 
         public IniFileService FileService = new IniFileService(FileName);
 
-        private Dictionary<string, string> _keyValuePairs = new Dictionary<string, string>
+        public readonly Dictionary<string, string> KeyValuePairs = new Dictionary<string, string>
         {
             { ClearUserData, SectionGeneral },
             { HideAddButton, SectionGeneral },
@@ -160,7 +160,7 @@ namespace SAM
             { LastBanColumnIndex, SectionColumns },
         };
 
-        private readonly Dictionary<string, string> _listViewColumns = new Dictionary<string, string>
+        public readonly Dictionary<string, string> ListViewColumns = new Dictionary<string, string>
         {
             { "Name", NameColumnIndex },
             { "Description", DescriptionColumnIndex },

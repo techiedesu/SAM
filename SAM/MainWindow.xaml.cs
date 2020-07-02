@@ -20,9 +20,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
+using SAM.Extensions;
 using SAM.Helpers;
 using SAM.Models;
+using SAM.Services;
 using SteamAuth;
+using static System.Windows.Media.ColorConverter;
 using Application = System.Windows.Application;
 using Button = System.Windows.Controls.Button;
 using Clipboard = System.Windows.Clipboard;
@@ -75,7 +78,7 @@ namespace SAM
                 File.Delete("Updater.exe");
 
             // Check for a new version if enabled.
-            if (settings.User.CheckForUpdates && await UpdateCheck.CheckForUpdate(UpdateCheckUrl, releasesUrl) == 1)
+            if (settings.User.CheckForUpdates && await UpdateService.CheckForUpdate(UpdateCheckUrl, releasesUrl) == 1)
             {
                 // An update is available, but user has chosen not to update.
                 ver.Header = "Update Available!";
@@ -219,7 +222,9 @@ namespace SAM
                                 settings.User.SleepTime = settings.Default.SleepTime * 1000;
                             }
                             else
+                            {
                                 settings.User.SleepTime = sleepTime * 1000;
+                            }
 
                             break;
 
@@ -285,7 +290,9 @@ namespace SAM
                 SetWindowSettingsIntoScreenArea();
             }
             else
+            {
                 SetWindowToCenter();
+            }
 
             if (settings.User.ListView)
             {
@@ -580,7 +587,7 @@ namespace SAM
                             AviUrl = account.AviUrl,
                             SteamId = steamId,
                             Timeout = account.Timeout,
-                            Description = account.Description,
+                            Description = account.Description
                         });
                     }
                 }
@@ -598,11 +605,8 @@ namespace SAM
                         TaskBarIconLoginContextMenu.IsEnabled = true;
                         TaskBarIconLoginContextMenu.Items.Add(GenerateTaskBarMenuItem(index, account));
 
-                        if (Utils.AccountHasActiveTimeout(account))
+                        if (account.HasActiveTimeout())
                         {
-                            // Set up timer event to update timeout label
-                            var timeLeft = account.Timeout - DateTime.Now;
-
                             var timeoutTimer = new Timer();
                             timeoutTimers.Add(timeoutTimer);
 
@@ -667,8 +671,8 @@ namespace SAM
                         accountText.Margin = new Thickness(0, 0, 0, 7);
                         accountText.Padding = new Thickness(0, 0, 0, 1);
                         accountText.TextAlignment = TextAlignment.Center;
-                        accountText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.BannerFontColor));
-                        accountText.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonBannerColor));
+                        accountText.Foreground = new SolidColorBrush((Color)ConvertFromString(settings.User.BannerFontColor));
+                        accountText.Background = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonBannerColor));
                         accountText.Visibility = Visibility.Collapsed;
 
                         timeoutTextBlock.Width = settings.User.ButtonSize;
@@ -688,8 +692,8 @@ namespace SAM
 
                         if (account.ProfUrl == "" || account.AviUrl == null || account.AviUrl == "" || account.AviUrl == " ")
                         {
-                            accountImage.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonColor));
-                            accountButton.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonFontColor));
+                            accountImage.Background = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonColor));
+                            accountButton.Foreground = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonFontColor));
                             timeoutTextBlock.Margin = new Thickness(0, 0, 0, 50);
 
                             if (!string.IsNullOrEmpty(account.Alias))
@@ -709,13 +713,13 @@ namespace SAM
                             catch (Exception m)
                             {
                                 // Probably no internet connection or avatar url is bad.
-                                Console.WriteLine("Error: " + m.Message);
+                                Console.WriteLine($"Error: {m.Message}");
 
-                                accountImage.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonColor));
-                                accountButton.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.User.ButtonFontColor));
+                                accountImage.Background = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonColor));
+                                accountButton.Foreground = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonFontColor));
                                 timeoutTextBlock.Margin = new Thickness(0, 0, 0, 50);
 
-                                if (account.Alias != null && account.Alias.Length > 0)
+                                if (!string.IsNullOrEmpty(account.Alias))
                                     accountButton.Content = account.Alias;
                                 else
                                     accountButton.Content = account.Name;
@@ -725,7 +729,6 @@ namespace SAM
                         accountButton.Click += AccountButton_Click;
                         accountButton.PreviewMouseLeftButtonDown += AccountButton_MouseDown;
                         accountButton.PreviewMouseLeftButtonUp += AccountButton_MouseUp;
-                        //accountButton.PreviewMouseMove += new System.Windows.Input.MouseEventHandler(AccountButton_MouseMove);
                         accountButton.MouseLeave += AccountButton_MouseLeave;
                         accountButton.MouseEnter += delegate { AccountButton_MouseEnter(accountText); };
                         accountButton.MouseLeave += delegate { AccountButton_MouseLeave(accountText); };
@@ -734,7 +737,7 @@ namespace SAM
 
                         var buttonIndex = int.Parse(accountButton.Tag.ToString());
 
-                        if (Utils.AccountHasActiveTimeout(account))
+                        if (account.HasActiveTimeout())
                         {
                             // Set up timer event to update timeout label
                             var timeLeft = account.Timeout - DateTime.Now;
@@ -745,7 +748,7 @@ namespace SAM
                             timeoutTimer.Elapsed += delegate { Dispatcher.Invoke(() => { TimeoutTimer_Tick(buttonIndex, timeoutTextBlock, timeoutTimer); }); };
                             timeoutTimer.Interval = 1000;
                             timeoutTimer.Enabled = true;
-                            timeoutTextBlock.Text = Utils.FormatTimespanString(timeLeft.Value);
+                            timeoutTextBlock.Text = timeLeft.Value.FormatTimespanString();
                             timeoutTextBlock.Visibility = Visibility.Visible;
 
                             accountButtonGrid.Children.Add(timeoutTextBlock);
@@ -770,7 +773,6 @@ namespace SAM
                                           "\nEconomy Ban: " + account.EconomyBan +
                                           "\nDays Since Last Ban:" + account.DaysSinceLastBan
                             };
-
 
 
                             accountButtonGrid.Children.Add(banInfoImage);
@@ -883,7 +885,8 @@ namespace SAM
             var copyPasswordItem = new MenuItem();
             var copyProfileUrlItem = new MenuItem();
 
-            if (!Utils.AccountHasActiveTimeout(account)) clearTimeoutItem.IsEnabled = false;
+            if (!account.HasActiveTimeout())
+                clearTimeoutItem.IsEnabled = false;
 
             deleteItem.Header = "Delete";
             editItem.Header = "Edit";
@@ -992,7 +995,7 @@ namespace SAM
                         ProfUrl = dialog.UrlText,
                         AviUrl = aviUrl,
                         SteamId = steamId,
-                        Description = dialog.DescriptionText,
+                        Description = dialog.DescriptionText
                     };
 
                     await ReloadAccount(newAccount);
@@ -1022,7 +1025,7 @@ namespace SAM
                 PasswordText = decryptedAccounts[index].Password,
                 SharedSecretText = decryptedAccounts[index].SharedSecret,
                 UrlText = decryptedAccounts[index].ProfUrl,
-                DescriptionText = decryptedAccounts[index].Description,
+                DescriptionText = decryptedAccounts[index].Description
             };
 
             // Reload selected boolean
@@ -1039,8 +1042,6 @@ namespace SAM
                     aviUrl = dialog.AviText;
                 else
                     aviUrl = await Utils.HtmlAviScrapeAsync(dialog.UrlText);
-
-                var steamId = dialog.SteamId;
 
                 // If the auto login checkbox was checked, update settings file and global variables. 
                 if (dialog.AutoLogAccountIndex)
@@ -1100,18 +1101,16 @@ namespace SAM
                 return;
             }
 
-            if (Utils.AccountHasActiveTimeout(encryptedAccounts[index]))
+            if (encryptedAccounts[index].HasActiveTimeout())
             {
                 var result = MessageBox.Show("Account timeout is active!\nLogin anyway?", "Timeout", MessageBoxButton.YesNo, MessageBoxImage.Warning, 0,
                     MessageBoxOptions.DefaultDesktopOnly);
 
-                if (result == MessageBoxResult.No) return;
+                if (result == MessageBoxResult.No)
+                    return;
             }
 
-            foreach (var loginThread in loginThreads)
-            {
-                loginThread.Abort();
-            }
+            loginThreads.ForEach(lt => lt.Abort());
 
             // Update the most recently used account index.
             settings.User.RecentAccountIndex = index;
@@ -1128,7 +1127,7 @@ namespace SAM
                     UseShellExecute = true,
                     FileName = settings.User.SteamPath + "steam.exe",
                     WorkingDirectory = settings.User.SteamPath,
-                    Arguments = "-shutdown",
+                    Arguments = "-shutdown"
                 };
 
                 try
@@ -1144,7 +1143,8 @@ namespace SAM
             }
 
             // Make sure Username field is empty and Remember Password checkbox is unchecked.
-            if (!settings.User.Login) Utils.ClearAutoLoginUserKeyValues();
+            if (!settings.User.Login)
+                SteamHelper.ClearAutoLoginUserKeyValues();
 
             var parametersBuilder = new StringBuilder();
 
@@ -1176,22 +1176,22 @@ namespace SAM
                 UseShellExecute = true,
                 FileName = Path.Combine(settings.User.SteamPath, "steam.exe"),
                 WorkingDirectory = settings.User.SteamPath,
-                Arguments = parametersBuilder.ToString(),
+                Arguments = parametersBuilder.ToString()
             };
 
             try
             {
                 Process.Start(startInfo);
             }
-            catch (Exception m)
+            catch (Exception ex)
             {
-                MessageBox.Show(m.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
             if (settings.User.Login)
             {
-                if (settings.User.RememberPassword) Utils.SetRememeberPasswordKeyValue(1);
+                if (settings.User.RememberPassword) Utils.SetRememberPasswordKeyValue(1);
 
                 if (!string.IsNullOrEmpty(decryptedAccounts[index].SharedSecret))
                     Task.Run(() => Type2Fa(index, 0));
@@ -1199,9 +1199,7 @@ namespace SAM
                     PostLogin();
             }
             else
-            {
                 Task.Run(() => TypeCredentials(index, 0));
-            }
         }
 
         private void TypeCredentials(int index, int tryCount)
@@ -1229,7 +1227,7 @@ namespace SAM
 
             // Enable Caps-Lock, to prevent IME problems.
             var capsLockEnabled = Control.IsKeyLocked(Keys.CapsLock);
-            if (settings.User.HandleMicrosoftIME && !settings.User.IME2FAOnly && !capsLockEnabled) Utils.SendCapsLockGlobally();
+            if (settings.User.HandleMicrosoftIme && !settings.User.Ime2FaOnly && !capsLockEnabled) Utils.SendCapsLockGlobally();
 
             foreach (var c in decryptedAccounts[index].Name)
             {
@@ -1265,7 +1263,7 @@ namespace SAM
             Utils.SendEnter(steamLoginWindow.RawPtr, settings.User.VirtualInputMethod);
 
             // Restore CapsLock back if CapsLock is off before we start typing.
-            if (settings.User.HandleMicrosoftIME && !settings.User.IME2FAOnly && !capsLockEnabled) Utils.SendCapsLockGlobally();
+            if (settings.User.HandleMicrosoftIme && !settings.User.Ime2FaOnly && !capsLockEnabled) Utils.SendCapsLockGlobally();
 
             var waitCount = 0;
 
@@ -1299,96 +1297,95 @@ namespace SAM
                 Type2Fa(index, 0);
             }
             else
-            {
                 PostLogin();
-            }
         }
 
         private void Type2Fa(int index, int tryCount)
         {
-            // Need both the Steam Login and Steam Guard windows.
-            // Can't focus the Steam Guard window directly.
-            var steamLoginWindow = Utils.GetSteamLoginWindow();
-            var steamGuardWindow = Utils.GetSteamGuardWindow();
-
-            while (!steamLoginWindow.IsValid || !steamGuardWindow.IsValid)
+            while (true)
             {
+                // Need both the Steam Login and Steam Guard windows.
+                // Can't focus the Steam Guard window directly.
+                var steamLoginWindow = Utils.GetSteamLoginWindow();
+                var steamGuardWindow = Utils.GetSteamGuardWindow();
+
+                while (!steamLoginWindow.IsValid || !steamGuardWindow.IsValid)
+                {
+                    Thread.Sleep(10);
+                    steamLoginWindow = Utils.GetSteamLoginWindow();
+                    steamGuardWindow = Utils.GetSteamGuardWindow();
+
+                    // Check for Steam warning window.
+                    var steamWarningWindow = Utils.GetSteamWarningWindow();
+                    if (steamWarningWindow.IsValid)
+                        //Cancel the 2FA process since Steam connection is likely unavailable. 
+                        return;
+                }
+
+                Console.WriteLine("Found windows.");
+
+                var steamGuardProcess = Utils.WaitForSteamProcess(steamGuardWindow);
+                steamGuardProcess.WaitForInputIdle();
+
+                // Wait a bit for the window to fully initialize just in case.
+                Thread.Sleep(settings.User.SleepTime);
+
+                // Generate 2FA code, then send it to the client.
+                Console.WriteLine("It is idle now, typing code...");
+
+                Utils.SetForegroundWindow(steamGuardWindow.RawPtr);
+
+                // Enable Caps-Lock, to prevent IME problems.
+                var capsLockEnabled = Control.IsKeyLocked(Keys.CapsLock);
+                if (settings.User.HandleMicrosoftIme && !capsLockEnabled) Utils.SendCapsLockGlobally();
+
                 Thread.Sleep(10);
-                steamLoginWindow = Utils.GetSteamLoginWindow();
+
+                foreach (var c in Generate2FaCode(decryptedAccounts[index].SharedSecret))
+                {
+                    Utils.SetForegroundWindow(steamGuardWindow.RawPtr);
+                    Thread.Sleep(10);
+
+                    // Can also send keys to login window handle, but nothing works unless it is the foreground window.
+                    Utils.SendCharacter(steamGuardWindow.RawPtr, settings.User.VirtualInputMethod, c);
+                }
+
+                Utils.SetForegroundWindow(steamGuardWindow.RawPtr);
+
+                Thread.Sleep(10);
+
+                Utils.SendEnter(steamGuardWindow.RawPtr, settings.User.VirtualInputMethod);
+
+                // Restore CapsLock back if CapsLock is off before we start typing.
+                if (settings.User.HandleMicrosoftIme && !capsLockEnabled) Utils.SendCapsLockGlobally();
+
+                // Need a little pause here to more reliably check for popup later.
+                Thread.Sleep(settings.User.SleepTime);
+
+                // Check if we still have a 2FA popup, which means the previous one failed.
                 steamGuardWindow = Utils.GetSteamGuardWindow();
 
-                // Check for Steam warning window.
-                var steamWarningWindow = Utils.GetSteamWarningWindow();
-                if (steamWarningWindow.IsValid)
-                    //Cancel the 2FA process since Steam connection is likely unavailable. 
-                    return;
+                if (tryCount < maxRetry && steamGuardWindow.IsValid)
+                {
+                    Console.WriteLine("2FA code failed, retrying...");
+                    tryCount++;
+                    continue;
+                }
+
+                if (tryCount == maxRetry && steamGuardWindow.IsValid)
+                {
+                    var result = MessageBox.Show("2FA Failed\nPlease wait or bring the Steam Guard\nwindow to the front before clicking OK", "Error", MessageBoxButton.OKCancel, MessageBoxImage.Error);
+
+                    if (result == MessageBoxResult.OK) Type2Fa(index, tryCount + 1);
+                }
+                else if (tryCount == maxRetry + 1 && steamGuardWindow.IsValid)
+                {
+                    MessageBox.Show("2FA Failed\nPlease verify your shared secret is correct!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
+                PostLogin();
+                break;
             }
-
-            Console.WriteLine("Found windows.");
-
-            var steamGuardProcess = Utils.WaitForSteamProcess(steamGuardWindow);
-            steamGuardProcess.WaitForInputIdle();
-
-            // Wait a bit for the window to fully initialize just in case.
-            Thread.Sleep(settings.User.SleepTime);
-
-            // Generate 2FA code, then send it to the client.
-            Console.WriteLine("It is idle now, typing code...");
-
-            Utils.SetForegroundWindow(steamGuardWindow.RawPtr);
-
-            // Enable Caps-Lock, to prevent IME problems.
-            var capsLockEnabled = Control.IsKeyLocked(Keys.CapsLock);
-            if (settings.User.HandleMicrosoftIME && !capsLockEnabled) Utils.SendCapsLockGlobally();
-
-            Thread.Sleep(10);
-
-            foreach (var c in Generate2FaCode(decryptedAccounts[index].SharedSecret))
-            {
-                Utils.SetForegroundWindow(steamGuardWindow.RawPtr);
-                Thread.Sleep(10);
-
-                // Can also send keys to login window handle, but nothing works unless it is the foreground window.
-                Utils.SendCharacter(steamGuardWindow.RawPtr, settings.User.VirtualInputMethod, c);
-            }
-
-            Utils.SetForegroundWindow(steamGuardWindow.RawPtr);
-
-            Thread.Sleep(10);
-
-            Utils.SendEnter(steamGuardWindow.RawPtr, settings.User.VirtualInputMethod);
-
-            // Restore CapsLock back if CapsLock is off before we start typing.
-            if (settings.User.HandleMicrosoftIME && !capsLockEnabled)
-                Utils.SendCapsLockGlobally();
-
-            // Need a little pause here to more reliably check for popup later.
-            Thread.Sleep(settings.User.SleepTime);
-
-            // Check if we still have a 2FA popup, which means the previous one failed.
-            steamGuardWindow = Utils.GetSteamGuardWindow();
-
-            if (tryCount < maxRetry && steamGuardWindow.IsValid)
-            {
-                Console.WriteLine("2FA code failed, retrying...");
-                Type2Fa(index, tryCount + 1);
-                return;
-            }
-
-            if (tryCount == maxRetry && steamGuardWindow.IsValid)
-            {
-                var result = MessageBox.Show("2FA Failed\nPlease wait or bring the Steam Guard\nwindow to the front before clicking OK", "Error",
-                    MessageBoxButton.OKCancel, MessageBoxImage.Error);
-
-                if (result == MessageBoxResult.OK)
-                    Type2Fa(index, tryCount + 1);
-            }
-            else if (tryCount == maxRetry + 1 && steamGuardWindow.IsValid)
-            {
-                MessageBox.Show("2FA Failed\nPlease verify your shared secret is correct!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-            PostLogin();
         }
 
         private void PostLogin()
@@ -1416,7 +1413,7 @@ namespace SAM
                     // Alphabetical sort based on account name.
                     0 => encryptedAccounts.OrderBy(a => a.Name).ToList(),
                     1 => encryptedAccounts.OrderBy(a => Guid.NewGuid()).ToList(),
-                    _ => encryptedAccounts,
+                    _ => encryptedAccounts
                 };
 
                 SerializeAccounts();
@@ -1486,7 +1483,7 @@ namespace SAM
             var messageBoxResult = MessageBox.Show("Are you sure you want to expose all account credentials in plain text?", "Confirm", MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
-            if (messageBoxResult == MessageBoxResult.No || IsPasswordProtected() && !VerifyPassword()) 
+            if (messageBoxResult == MessageBoxResult.No || IsPasswordProtected() && !VerifyPassword())
                 return;
 
             var exposedCredentialsWindow = new ExposedInfoWindow(decryptedAccounts);
@@ -1530,7 +1527,7 @@ namespace SAM
             }
             else
             {
-                timeoutLabel.Text = Utils.FormatTimespanString(timeLeft.Value);
+                timeoutLabel.Text = timeLeft.Value.FormatTimespanString();
                 timeoutLabel.Visibility = Visibility.Visible;
             }
         }
@@ -1549,7 +1546,7 @@ namespace SAM
             }
             else
             {
-                encryptedAccounts[index].TimeoutTimeLeft = Utils.FormatTimespanString(timeLeft.Value);
+                encryptedAccounts[index].TimeoutTimeLeft = timeLeft.Value.FormatTimespanString();
             }
         }
 
@@ -1582,7 +1579,7 @@ namespace SAM
 
         private void SetWindowSettingsIntoScreenArea()
         {
-            if (IsInBounds() == false)
+            if (!IsInBounds())
                 SetWindowToCenter();
         }
 
@@ -1615,7 +1612,7 @@ namespace SAM
 
         private void MainScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            var scv = (ScrollViewer) sender;
+            var scv = (ScrollViewer)sender;
             scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
             e.Handled = true;
         }
@@ -1924,7 +1921,7 @@ namespace SAM
 
         private async void Ver_Click(object sender, RoutedEventArgs e)
         {
-            if (await UpdateCheck.CheckForUpdate(UpdateCheckUrl, repositoryUrl) < 1)
+            if (await UpdateService.CheckForUpdate(UpdateCheckUrl, repositoryUrl) < 1)
                 MessageBox.Show(Process.GetCurrentProcess().ProcessName + " is up to date!");
         }
 
