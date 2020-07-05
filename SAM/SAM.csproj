@@ -76,6 +76,7 @@
     <Compile Include="ExposedInfoWindow.xaml.cs">
       <DependentUpon>ExposedInfoWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PriorityMultiValueConverter.cs" />
     <Compile Include="Services\IniFileService.cs" />
     <Compile Include="VirtualInputMethod.cs" />
     <Compile Include="SamSettings.cs" />

@@ -78,7 +78,7 @@ namespace SAM
                 File.Delete("Updater.exe");
 
             // Check for a new version if enabled.
-            if (settings.User.CheckForUpdates && await UpdateService.CheckForUpdate(UpdateCheckUrl, releasesUrl) == 1)
+            if (settings.User.CheckForUpdates && await UpdateService.CheckForUpdate(UpdateCheckUrl, ReleasesUrl) == 1)
             {
                 // An update is available, but user has chosen not to update.
                 ver.Header = "Update Available!";
@@ -144,7 +144,7 @@ namespace SAM
                 {
                     try
                     {
-                        EncryptedAccounts = Utils.PasswordDeserialize(dataFile, passwordDialog.PasswordText);
+                        EncryptedAccounts = Utils.PasswordDeserialize(DataFile, passwordDialog.PasswordText);
                         messageBoxResult = MessageBoxResult.None;
                     }
                     catch (Exception e)
@@ -179,9 +179,9 @@ namespace SAM
             var messageBoxResult = MessageBox.Show("Do you want to password protect SAM?", "Protect", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
             if (messageBoxResult == MessageBoxResult.Yes)
-                settings.FileService.Write(SamSettings.PasswordProtect, VerifyAndSetPassword(), SamSettings.SectionGeneral);
+                settings.FileService.Write(SamSettings.PasswordProtect, VerifyAndSetPassword(), SamSettings.Sections.General);
             else
-                settings.FileService.Write(SamSettings.PasswordProtect, false.ToString(), SamSettings.SectionGeneral);
+                settings.FileService.Write(SamSettings.PasswordProtect, false.ToString(), SamSettings.Sections.General);
         }
 
         private void LoadSettings()
@@ -201,11 +201,11 @@ namespace SAM
                     switch (entry.Key)
                     {
                         case SamSettings.AccountsPerRow:
-                            var accountsPerRowString = settings.FileService.Read(SamSettings.AccountsPerRow, SamSettings.SectionGeneral);
+                            var accountsPerRowString = settings.FileService.Read(SamSettings.AccountsPerRow, SamSettings.Sections.General);
 
                             if (!Regex.IsMatch(accountsPerRowString, @"^\d+$") || int.Parse(accountsPerRowString) < 1)
                             {
-                                settings.FileService.Write(SamSettings.AccountsPerRow, settings.Default.AccountsPerRow.ToString(), SamSettings.SectionGeneral);
+                                settings.FileService.Write(SamSettings.AccountsPerRow, settings.Default.AccountsPerRow.ToString(), SamSettings.Sections.General);
                                 settings.User.AccountsPerRow = settings.Default.AccountsPerRow;
                             }
 
@@ -213,12 +213,12 @@ namespace SAM
                             break;
 
                         case SamSettings.SleepTime:
-                            var sleepTimeString = settings.FileService.Read(SamSettings.SleepTime, SamSettings.SectionGeneral);
+                            var sleepTimeString = settings.FileService.Read(SamSettings.SleepTime, SamSettings.Sections.General);
                             var sleepTime = 0;
 
                             if (!Regex.IsMatch(sleepTimeString, @"^\d+$") || !int.TryParse(sleepTimeString, out sleepTime) || sleepTime < 0 || sleepTime > 100)
                             {
-                                settings.FileService.Write(SamSettings.SleepTime, settings.Default.SleepTime.ToString(), SamSettings.SectionGeneral);
+                                settings.FileService.Write(SamSettings.SleepTime, settings.Default.SleepTime.ToString(), SamSettings.Sections.General);
                                 settings.User.SleepTime = settings.Default.SleepTime * 1000;
                             }
                             else
@@ -229,18 +229,18 @@ namespace SAM
                             break;
 
                         case SamSettings.StartMinimized:
-                            settings.User.StartMinimized = Convert.ToBoolean(settings.FileService.Read(SamSettings.StartMinimized, SamSettings.SectionGeneral));
+                            settings.User.StartMinimized = Convert.ToBoolean(settings.FileService.Read(SamSettings.StartMinimized, SamSettings.Sections.General));
                             if (settings.User.StartMinimized) WindowState = WindowState.Minimized;
                             break;
 
                         case SamSettings.ButtonSize:
-                            var buttonSizeString = settings.FileService.Read(SamSettings.ButtonSize, SamSettings.SectionCustomize);
+                            var buttonSizeString = settings.FileService.Read(SamSettings.ButtonSize, SamSettings.Sections.Customize);
                             var buttonSize = 0;
 
                             if (!Regex.IsMatch(buttonSizeString, @"^\d+$") || !int.TryParse(buttonSizeString, out buttonSize) || buttonSize < 50 ||
                                 buttonSize > 200)
                             {
-                                settings.FileService.Write(SamSettings.ButtonSize, "100", SamSettings.SectionCustomize);
+                                settings.FileService.Write(SamSettings.ButtonSize, "100", SamSettings.Sections.Customize);
                                 settings.User.ButtonSize = 100;
                             }
                             else
@@ -252,7 +252,7 @@ namespace SAM
 
                         case SamSettings.InputMethod:
                             settings.User.VirtualInputMethod = (VirtualInputMethod)Enum.Parse(typeof(VirtualInputMethod),
-                                settings.FileService.Read(SamSettings.InputMethod, SamSettings.SectionAutolog));
+                                settings.FileService.Read(SamSettings.InputMethod, SamSettings.Sections.Autolog));
                             break;
 
                         default:
@@ -260,7 +260,7 @@ namespace SAM
                             {
                                 case TypeCode.Boolean:
                                     settings.User.KeyValuePairs[entry.Key] = Convert.ToBoolean(settings.FileService.Read(entry.Key, entry.Value));
-                                    if (entry.Value.Equals(SamSettings.SectionParameters) && (bool)settings.User.KeyValuePairs[entry.Key] &&
+                                    if (entry.Value.Equals(SamSettings.Sections.Parameters) && (bool)settings.User.KeyValuePairs[entry.Key] &&
                                         !entry.Key.StartsWith("custom")) launchParameters.Add("-" + entry.Key);
                                     break;
 
@@ -282,11 +282,11 @@ namespace SAM
             }
 
             //Load and validate saved window location.
-            if (settings.FileService.KeyExists(SamSettings.WindowLeft, SamSettings.SectionLocation) &&
-                settings.FileService.KeyExists(SamSettings.WindowTop, SamSettings.SectionLocation))
+            if (settings.FileService.KeyExists(SamSettings.WindowLeft, SamSettings.Sections.Location) &&
+                settings.FileService.KeyExists(SamSettings.WindowTop, SamSettings.Sections.Location))
             {
-                Left = double.Parse(settings.FileService.Read(SamSettings.WindowLeft, SamSettings.SectionLocation));
-                Top = double.Parse(settings.FileService.Read(SamSettings.WindowTop, SamSettings.SectionLocation));
+                Left = double.Parse(settings.FileService.Read(SamSettings.WindowLeft, SamSettings.Sections.Location));
+                Top = double.Parse(settings.FileService.Read(SamSettings.WindowTop, SamSettings.Sections.Location));
                 SetWindowSettingsIntoScreenArea();
             }
             else
@@ -381,7 +381,7 @@ namespace SAM
             AddButtonGrid.Width = settings.User.ButtonSize;
 
             // Check if info.dat exists
-            if (File.Exists(dataFile))
+            if (File.Exists(DataFile))
             {
                 // Deserialize file
                 if (ePassword.Length > 0)
@@ -392,7 +392,7 @@ namespace SAM
                     {
                         try
                         {
-                            EncryptedAccounts = Utils.PasswordDeserialize(dataFile, ePassword);
+                            EncryptedAccounts = Utils.PasswordDeserialize(DataFile, ePassword);
                             messageBoxResult = MessageBoxResult.None;
                         }
                         catch (Exception e)
@@ -409,7 +409,7 @@ namespace SAM
                 }
                 else
                 {
-                    EncryptedAccounts = Utils.Deserialize(dataFile);
+                    EncryptedAccounts = Utils.Deserialize(DataFile);
                 }
 
                 PostDeserializedRefresh(true);
@@ -541,7 +541,7 @@ namespace SAM
                 }
             }
 
-            settings.FileService.Write(SamSettings.LastAutoReload, DateTime.Now.ToString(CultureInfo.InvariantCulture), SamSettings.SectionSteam);
+            settings.FileService.Write(SamSettings.LastAutoReload, DateTime.Now.ToString(CultureInfo.InvariantCulture), SamSettings.Sections.Steam);
             settings.User.LastAutoReload = DateTime.Now;
 
             SerializeAccounts();
@@ -976,9 +976,9 @@ namespace SAM
                 // If the auto login checkbox was checked, update settings file and global variables. 
                 if (dialog.AutoLogAccountIndex)
                 {
-                    settings.FileService.Write(SamSettings.SelectedAccountIndex, (EncryptedAccounts.Count + 1).ToString(), SamSettings.SectionAutolog);
-                    settings.FileService.Write(SamSettings.LoginSelectedAccount, true.ToString(), SamSettings.SectionAutolog);
-                    settings.FileService.Write(SamSettings.LoginRecentAccount, false.ToString(), SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.SelectedAccountIndex, (EncryptedAccounts.Count + 1).ToString(), SamSettings.Sections.Autolog);
+                    settings.FileService.Write(SamSettings.LoginSelectedAccount, true.ToString(), SamSettings.Sections.Autolog);
+                    settings.FileService.Write(SamSettings.LoginRecentAccount, false.ToString(), SamSettings.Sections.Autolog);
                     settings.User.LoginSelectedAccount = true;
                     settings.User.LoginRecentAccount = false;
                     settings.User.SelectedAccountIndex = EncryptedAccounts.Count + 1;
@@ -1030,7 +1030,7 @@ namespace SAM
 
             // Reload selected boolean
             settings.User.LoginSelectedAccount =
-                settings.FileService.Read(SamSettings.LoginSelectedAccount, SamSettings.SectionAutolog) == true.ToString();
+                settings.FileService.Read(SamSettings.LoginSelectedAccount, SamSettings.Sections.Autolog) == true.ToString();
 
             if (settings.User.LoginSelectedAccount && settings.User.SelectedAccountIndex == index)
                 dialog.autoLogCheckBox.IsChecked = true;
@@ -1046,17 +1046,17 @@ namespace SAM
                 // If the auto login checkbox was checked, update settings file and global variables. 
                 if (dialog.AutoLogAccountIndex)
                 {
-                    settings.FileService.Write(SamSettings.SelectedAccountIndex, index.ToString(), SamSettings.SectionAutolog);
-                    settings.FileService.Write(SamSettings.LoginSelectedAccount, true.ToString(), SamSettings.SectionAutolog);
-                    settings.FileService.Write(SamSettings.LoginRecentAccount, false.ToString(), SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.SelectedAccountIndex, index.ToString(), SamSettings.Sections.Autolog);
+                    settings.FileService.Write(SamSettings.LoginSelectedAccount, true.ToString(), SamSettings.Sections.Autolog);
+                    settings.FileService.Write(SamSettings.LoginRecentAccount, false.ToString(), SamSettings.Sections.Autolog);
                     settings.User.LoginSelectedAccount = true;
                     settings.User.LoginRecentAccount = false;
                     settings.User.SelectedAccountIndex = index;
                 }
                 else
                 {
-                    settings.FileService.Write(SamSettings.SelectedAccountIndex, "-1", SamSettings.SectionAutolog);
-                    settings.FileService.Write(SamSettings.LoginSelectedAccount, false.ToString(), SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.SelectedAccountIndex, "-1", SamSettings.Sections.Autolog);
+                    settings.FileService.Write(SamSettings.LoginSelectedAccount, false.ToString(), SamSettings.Sections.Autolog);
                     settings.User.LoginSelectedAccount = false;
                     settings.User.SelectedAccountIndex = -1;
                 }
@@ -1114,7 +1114,7 @@ namespace SAM
 
             // Update the most recently used account index.
             settings.User.RecentAccountIndex = index;
-            settings.FileService.Write(SamSettings.RecentAccountIndex, index.ToString(), SamSettings.SectionAutolog);
+            settings.FileService.Write(SamSettings.RecentAccountIndex, index.ToString(), SamSettings.Sections.Autolog);
 
             // Verify Steam file path.
             settings.User.SteamPath = Utils.CheckSteamPath();
@@ -1496,14 +1496,14 @@ namespace SAM
                 return true;
             try
             {
-                if (!File.Exists(dataFile))
+                if (!File.Exists(DataFile))
                     return false;
 
-                var lines = File.ReadAllLines(dataFile);
+                var lines = File.ReadAllLines(DataFile);
                 if (lines.Length == 0 || lines.Length > 1)
                     return false;
 
-                Utils.Deserialize(dataFile);
+                Utils.Deserialize(DataFile);
             }
             catch
             {
@@ -1554,8 +1554,8 @@ namespace SAM
         {
             if (!isLoadingSettings && settings.FileService != null && IsInBounds())
             {
-                settings.FileService.Write(SamSettings.WindowLeft, Left.ToString(CultureInfo.InvariantCulture), SamSettings.SectionLocation);
-                settings.FileService.Write(SamSettings.WindowTop, Top.ToString(CultureInfo.InvariantCulture), SamSettings.SectionLocation);
+                settings.FileService.Write(SamSettings.WindowLeft, Left.ToString(CultureInfo.InvariantCulture), SamSettings.Sections.Location);
+                settings.FileService.Write(SamSettings.WindowTop, Top.ToString(CultureInfo.InvariantCulture), SamSettings.Sections.Location);
             }
         }
 
@@ -1566,8 +1566,8 @@ namespace SAM
                 settings.User.ListViewHeight = Height;
                 settings.User.ListViewWidth = Width;
 
-                settings.FileService.Write(SamSettings.ListViewHeight, Height.ToString(CultureInfo.InvariantCulture), SamSettings.SectionLocation);
-                settings.FileService.Write(SamSettings.ListViewWidth, Width.ToString(CultureInfo.InvariantCulture), SamSettings.SectionLocation);
+                settings.FileService.Write(SamSettings.ListViewHeight, Height.ToString(CultureInfo.InvariantCulture), SamSettings.Sections.Location);
+                settings.FileService.Write(SamSettings.ListViewWidth, Width.ToString(CultureInfo.InvariantCulture), SamSettings.Sections.Location);
             }
         }
 
@@ -1606,7 +1606,7 @@ namespace SAM
         {
             foreach (var column in AccountsDataGrid.Columns)
             {
-                settings.FileService.Write(settings.ListViewColumns[column.Header.ToString()], column.DisplayIndex.ToString(), SamSettings.SectionColumns);
+                settings.FileService.Write(settings.ListViewColumns[column.Header.ToString()], column.DisplayIndex.ToString(), SamSettings.Sections.Columns);
             }
         }
 
@@ -1631,14 +1631,14 @@ namespace SAM
 
         // TODO: Move to config file.
         private static readonly string UpdateCheckUrl = "https://raw.githubusercontent.com/rex706/SAM/master/latest.txt";
-        private static readonly string repositoryUrl = "https://github.com/rex706/SAM";
-        private static readonly string releasesUrl = repositoryUrl + "/releases";
+        private static readonly string RepositoryUrl = "https://github.com/rex706/SAM";
+        private static readonly string ReleasesUrl = RepositoryUrl + "/releases";
 
         private static bool isLoadingSettings = true;
         private static bool firstLoad = true;
 
         // TODO: Move to config file.
-        private static readonly string dataFile = "info.dat";
+        private static readonly string DataFile = "info.dat";
 
         // Keys are changed before releases/updates
         private static readonly string eKey = "PRIVATE_KEY";
@@ -1916,12 +1916,12 @@ namespace SAM
 
         private void GitMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start(repositoryUrl);
+            Process.Start(RepositoryUrl);
         }
 
         private async void Ver_Click(object sender, RoutedEventArgs e)
         {
-            if (await UpdateService.CheckForUpdate(UpdateCheckUrl, repositoryUrl) < 1)
+            if (await UpdateService.CheckForUpdate(UpdateCheckUrl, RepositoryUrl) < 1)
                 MessageBox.Show(Process.GetCurrentProcess().ProcessName + " is up to date!");
         }
 
@@ -2088,7 +2088,7 @@ namespace SAM
                     {
                         try
                         {
-                            File.Delete(dataFile);
+                            File.Delete(DataFile);
                         }
                         catch (Exception ex)
                         {

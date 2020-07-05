@@ -73,7 +73,7 @@ namespace SAM
         public static void PasswordSerialize(List<Account> accounts, string password)
         {
             var serializer = new XmlSerializer(accounts.GetType());
-            MemoryStream memStream = new MemoryStream();
+            var memStream = new MemoryStream();
             serializer.Serialize(memStream, accounts);
 
             var serializedAccounts = Encoding.UTF8.GetString(memStream.ToArray());
@@ -230,7 +230,7 @@ namespace SAM
         {
             var settingsFile = new IniFileService(SamSettings.FileName);
 
-            var steamPath = settingsFile.Read(SamSettings.SteamPath, SamSettings.SectionSteam);
+            var steamPath = settingsFile.Read(SamSettings.SteamPath, SamSettings.Sections.Steam);
 
             var tryCount = 0;
 
@@ -290,7 +290,7 @@ namespace SAM
             }
 
             // Save path to settings file.
-            settingsFile.Write(SamSettings.SteamPath, steamPath, SamSettings.SectionSteam);
+            settingsFile.Write(SamSettings.SteamPath, steamPath, SamSettings.Sections.Steam);
 
             return steamPath;
         }
@@ -354,7 +354,7 @@ namespace SAM
 
             try
             {
-                var steamPath = new IniFileService(SamSettings.FileName).Read(SamSettings.SteamPath, SamSettings.SectionSteam);
+                var steamPath = new IniFileService(SamSettings.FileName).Read(SamSettings.SteamPath, SamSettings.Sections.Steam);
 
                 // Attempt to find Steam Id from steam config.
                 dynamic config = VdfConvert.Deserialize(File.ReadAllText(steamPath + "config\\config.vdf"));
@@ -392,7 +392,7 @@ namespace SAM
         public static async Task<dynamic> GetUserInfoFromWebApiBySteamId(string steamId)
         {
             var settingsFile = new IniFileService(SamSettings.FileName);
-            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.Sections.Steam);
 
             dynamic userJson = null;
 
@@ -418,7 +418,7 @@ namespace SAM
         public static async Task<List<dynamic>> GetUserInfosFromWepApi(List<string> steamIds)
         {
             var settingsFile = new Services.IniFileService(SamSettings.FileName);
-            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.Sections.Steam);
 
             var userInfos = new List<dynamic>();
 
@@ -464,7 +464,7 @@ namespace SAM
         public static async Task<dynamic> GetSteamIdFromVanityUrl(string vanity)
         {
             var settingsFile = new IniFileService(SamSettings.FileName);
-            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.Sections.Steam);
 
             dynamic userInfoJson = null;
 
@@ -497,7 +497,7 @@ namespace SAM
         public static async Task<List<dynamic>> GetPlayerBansFromWebApi(List<string> steamIds)
         {
             var settingsFile = new IniFileService(SamSettings.FileName);
-            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.Sections.Steam);
 
             var userBans = new List<dynamic>();
 
@@ -765,7 +765,7 @@ namespace SAM
         public static bool ApiKeyExists()
         {
             var settingsFile = new IniFileService(SamSettings.FileName);
-            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.SectionSteam);
+            var apiKey = settingsFile.Read(SamSettings.SteamApiKey, SamSettings.Sections.Steam);
             return apiKey != null && apiKey.Length == ApiKeyLength;
         }
 

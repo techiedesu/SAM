@@ -9,15 +9,18 @@ namespace SAM
 {
     internal class SamSettings
     {
-        public const string FileName = "SAMSettings.ini";
+        internal class Sections
+        {
+            public const string General = "Settings";
+            public const string Autolog = "AutoLog";
+            public const string Customize = "Customize";
+            public const string Steam = "Steam";
+            public const string Parameters = "Parameters";
+            public const string Location = "Location";
+            public const string Columns = "Columns";
+        }
 
-        public const string SectionGeneral = "Settings";
-        public const string SectionAutolog = "AutoLog";
-        public const string SectionCustomize = "Customize";
-        public const string SectionSteam = "Steam";
-        public const string SectionParameters = "Parameters";
-        public const string SectionLocation = "Location";
-        public const string SectionColumns = "Columns";
+        public const string FileName = "SAMSettings.ini";
 
         public const string ClearUserData = "ClearUserData";
         public const string HideAddButton = "HideAddButton";
@@ -94,70 +97,70 @@ namespace SAM
 
         public readonly Dictionary<string, string> KeyValuePairs = new Dictionary<string, string>
         {
-            { ClearUserData, SectionGeneral },
-            { HideAddButton, SectionGeneral },
-            { PasswordProtect, SectionGeneral },
-            { MinimizeToTray, SectionGeneral },
-            { RememberPassword, SectionGeneral },
-            { StartMinimized, SectionGeneral },
-            { StartWithWindows, SectionGeneral },
-            { AccountsPerRow, SectionGeneral },
-            { SleepTime, SectionGeneral },
-            { CheckForUpdates, SectionGeneral },
-            { CloseOnLogin, SectionGeneral },
-            { ListView, SectionGeneral },
-            { SandboxMode, SectionGeneral },
+            { ClearUserData, Sections.General },
+            { HideAddButton, Sections.General },
+            { PasswordProtect, Sections.General },
+            { MinimizeToTray, Sections.General },
+            { RememberPassword, Sections.General },
+            { StartMinimized, Sections.General },
+            { StartWithWindows, Sections.General },
+            { AccountsPerRow, Sections.General },
+            { SleepTime, Sections.General },
+            { CheckForUpdates, Sections.General },
+            { CloseOnLogin, Sections.General },
+            { ListView, Sections.General },
+            { SandboxMode, Sections.General },
 
-            { LoginRecentAccount, SectionAutolog },
-            { RecentAccountIndex, SectionAutolog },
-            { LoginSelectedAccount, SectionAutolog },
-            { SelectedAccountIndex, SectionAutolog },
-            { InputMethod, SectionAutolog },
-            { HandleIme, SectionAutolog },
-            { Ime2FaOnly, SectionAutolog },
+            { LoginRecentAccount, Sections.Autolog },
+            { RecentAccountIndex, Sections.Autolog },
+            { LoginSelectedAccount, Sections.Autolog },
+            { SelectedAccountIndex, Sections.Autolog },
+            { InputMethod, Sections.Autolog },
+            { HandleIme, Sections.Autolog },
+            { Ime2FaOnly, Sections.Autolog },
 
-            { Theme, SectionCustomize },
-            { Accent, SectionCustomize },
-            { ButtonSize, SectionCustomize },
-            { ButtonColor, SectionCustomize },
-            { ButtonFontSize, SectionCustomize },
-            { ButtonFontColor, SectionCustomize },
-            { ButtonBannerColor, SectionCustomize },
-            { ButtonBannerFontSize, SectionCustomize },
-            { ButtonBannerFontColor, SectionCustomize },
-            { HideBanIcons, SectionCustomize },
+            { Theme, Sections.Customize },
+            { Accent, Sections.Customize },
+            { ButtonSize, Sections.Customize },
+            { ButtonColor, Sections.Customize },
+            { ButtonFontSize, Sections.Customize },
+            { ButtonFontColor, Sections.Customize },
+            { ButtonBannerColor, Sections.Customize },
+            { ButtonBannerFontSize, Sections.Customize },
+            { ButtonBannerFontColor, Sections.Customize },
+            { HideBanIcons, Sections.Customize },
 
-            { SteamPath, SectionSteam },
-            { SteamApiKey, SectionSteam },
-            { AutoReloadEnabled, SectionSteam },
-            { AutoReloadInterval, SectionSteam },
-            { LastAutoReload, SectionSteam },
+            { SteamPath, Sections.Steam },
+            { SteamApiKey, Sections.Steam },
+            { AutoReloadEnabled, Sections.Steam },
+            { AutoReloadInterval, Sections.Steam },
+            { LastAutoReload, Sections.Steam },
 
-            { CafeAppLaunchParameter, SectionParameters },
-            { ClearBetaParameter, SectionParameters },
-            { ConsoleParameter, SectionParameters },
-            { DeveloperParameter, SectionParameters },
-            { ForceServiceParameter, SectionParameters },
-            { LoginParameter, SectionParameters },
-            { NoCacheParameter, SectionParameters },
-            { NoVerifyFilesParameter, SectionParameters },
-            { SilentParameter, SectionParameters },
-            { SingleCoreParameter, SectionParameters },
-            { TcpParameter, SectionParameters },
-            { TenFootParameter, SectionParameters },
-            { CustomParameters, SectionParameters },
-            { CustomParametersValue, SectionParameters },
+            { CafeAppLaunchParameter, Sections.Parameters },
+            { ClearBetaParameter, Sections.Parameters },
+            { ConsoleParameter, Sections.Parameters },
+            { DeveloperParameter, Sections.Parameters },
+            { ForceServiceParameter, Sections.Parameters },
+            { LoginParameter, Sections.Parameters },
+            { NoCacheParameter, Sections.Parameters },
+            { NoVerifyFilesParameter, Sections.Parameters },
+            { SilentParameter, Sections.Parameters },
+            { SingleCoreParameter, Sections.Parameters },
+            { TcpParameter, Sections.Parameters },
+            { TenFootParameter, Sections.Parameters },
+            { CustomParameters, Sections.Parameters },
+            { CustomParametersValue, Sections.Parameters },
 
-            { ListViewHeight, SectionLocation },
-            { ListViewWidth, SectionLocation },
+            { ListViewHeight, Sections.Location },
+            { ListViewWidth, Sections.Location },
 
-            { NameColumnIndex, SectionColumns },
-            { DescriptionColumnIndex, SectionColumns },
-            { TimeoutColumnIndex, SectionColumns },
-            { VacBansColumnIndex, SectionColumns },
-            { GameBansColumnIndex, SectionColumns },
-            { EcoBanColumnIndex, SectionColumns },
-            { LastBanColumnIndex, SectionColumns },
+            { NameColumnIndex, Sections.Columns },
+            { DescriptionColumnIndex, Sections.Columns },
+            { TimeoutColumnIndex, Sections.Columns },
+            { VacBansColumnIndex, Sections.Columns },
+            { GameBansColumnIndex, Sections.Columns },
+            { EcoBanColumnIndex, Sections.Columns },
+            { LastBanColumnIndex, Sections.Columns },
         };
 
         public readonly Dictionary<string, string> ListViewColumns = new Dictionary<string, string>
@@ -171,47 +174,47 @@ namespace SAM
             { "Last Ban (Days)", LastBanColumnIndex },
         };
 
-        public UserSettings User = new UserSettings();
+        public readonly UserSettings User = new UserSettings();
 
         public void HandleDeprecatedSettings()
         {
             // Update Recent and Selected login setting names.
-            if (FileService.KeyExists("Recent", SectionAutolog))
+            if (FileService.KeyExists("Recent", Sections.Autolog))
             {
-                FileService.Write(LoginRecentAccount, FileService.Read("Recent", SectionAutolog), SectionAutolog);
-                FileService.DeleteKey("Recent", SectionAutolog);
+                FileService.Write(LoginRecentAccount, FileService.Read("Recent", Sections.Autolog), Sections.Autolog);
+                FileService.DeleteKey("Recent", Sections.Autolog);
             }
 
-            if (FileService.KeyExists("RecentAcc", SectionAutolog))
+            if (FileService.KeyExists("RecentAcc", Sections.Autolog))
             {
-                FileService.Write(RecentAccountIndex, FileService.Read("RecentAcc", SectionAutolog), SectionAutolog);
-                FileService.DeleteKey("RecentAcc", SectionAutolog);
+                FileService.Write(RecentAccountIndex, FileService.Read("RecentAcc", Sections.Autolog), Sections.Autolog);
+                FileService.DeleteKey("RecentAcc", Sections.Autolog);
             }
 
-            if (FileService.KeyExists("Selected", SectionAutolog))
+            if (FileService.KeyExists("Selected", Sections.Autolog))
             {
-                FileService.Write(LoginSelectedAccount, FileService.Read("Selected", SectionAutolog), SectionAutolog);
-                FileService.DeleteKey("Selected", SectionAutolog);
+                FileService.Write(LoginSelectedAccount, FileService.Read("Selected", Sections.Autolog), Sections.Autolog);
+                FileService.DeleteKey("Selected", Sections.Autolog);
             }
 
-            if (FileService.KeyExists("SelectedAcc", SectionAutolog))
+            if (FileService.KeyExists("SelectedAcc", Sections.Autolog))
             {
-                FileService.Write(SelectedAccountIndex, FileService.Read("SelectedAcc", SectionAutolog), SectionAutolog);
-                FileService.DeleteKey("SelectedAcc", SectionAutolog);
+                FileService.Write(SelectedAccountIndex, FileService.Read("SelectedAcc", Sections.Autolog), Sections.Autolog);
+                FileService.DeleteKey("SelectedAcc", Sections.Autolog);
             }
 
             // Move Steam file path to it's own section.
-            if (FileService.KeyExists(SectionSteam, SectionGeneral))
+            if (FileService.KeyExists(Sections.Steam, Sections.General))
             {
-                FileService.Write(SteamPath, FileService.Read(SectionSteam, SectionGeneral), SectionSteam);
-                FileService.DeleteKey(SectionSteam, SectionGeneral);
+                FileService.Write(SteamPath, FileService.Read(Sections.Steam, Sections.General), Sections.Steam);
+                FileService.DeleteKey(Sections.Steam, Sections.General);
             }
 
             // Move button size to 'Customize' section.
-            if (FileService.KeyExists(ButtonSize, SectionGeneral))
+            if (FileService.KeyExists(ButtonSize, Sections.General))
             {
-                FileService.Write(ButtonSize, FileService.Read(ButtonSize, SectionGeneral), SectionCustomize);
-                FileService.DeleteKey(ButtonSize, SectionGeneral);
+                FileService.Write(ButtonSize, FileService.Read(ButtonSize, Sections.General), Sections.Customize);
+                FileService.DeleteKey(ButtonSize, Sections.General);
             }
         }
     }
