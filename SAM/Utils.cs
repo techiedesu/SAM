@@ -100,7 +100,7 @@ namespace SAM
                 MessageBox.Show(ex.Message);
             }
 
-            return (List<Account>)obj;
+            return (List<Account>) obj;
         }
 
         public static List<Account> PasswordDeserialize(string file, string password)
@@ -119,20 +119,20 @@ namespace SAM
 
                 stream.Close();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                MessageBox.Show(e.Message);
+                MessageBox.Show(ex.Message);
             }
 
-            return (List<Account>)obj;
+            return (List<Account>) obj;
         }
 
         public static void ImportAccountsFromList(IEnumerable<Account> accounts)
         {
             try
             {
-                MainWindow.encryptedAccounts = MainWindow.encryptedAccounts.Concat(accounts).ToList();
-                Serialize(MainWindow.encryptedAccounts);
+                MainWindow.EncryptedAccounts = MainWindow.EncryptedAccounts.Concat(accounts).ToList();
+                Serialize(MainWindow.EncryptedAccounts);
                 MessageBox.Show("Account(s) imported!");
             }
             catch (Exception ex)
@@ -156,8 +156,8 @@ namespace SAM
                 try
                 {
                     var tempAccounts = Deserialize(dialog.FileName);
-                    MainWindow.encryptedAccounts = MainWindow.encryptedAccounts.Concat(tempAccounts).ToList();
-                    Serialize(MainWindow.encryptedAccounts);
+                    MainWindow.EncryptedAccounts = MainWindow.EncryptedAccounts.Concat(tempAccounts).ToList();
+                    Serialize(MainWindow.EncryptedAccounts);
                     MessageBox.Show("Accounts imported!");
                 }
                 catch (Exception m)
@@ -191,21 +191,21 @@ namespace SAM
             var dialog = new System.Windows.Forms.FolderBrowserDialog();
             var result = dialog.ShowDialog();
 
-            if (result == System.Windows.Forms.DialogResult.OK)
-            {
-                try
-                {
-                    var serializer = new XmlSerializer(accounts.GetType());
-                    var sw = new StreamWriter(dialog.SelectedPath + "\\info.dat");
-                    serializer.Serialize(sw, accounts);
-                    sw.Close();
+            if (result != System.Windows.Forms.DialogResult.OK)
+                return;
 
-                    MessageBox.Show("File exported to:\n" + dialog.SelectedPath);
-                }
-                catch (Exception m)
-                {
-                    MessageBox.Show(m.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+            try
+            {
+                var serializer = new XmlSerializer(accounts.GetType());
+                var sw = new StreamWriter($"{dialog.SelectedPath}\\info.dat");
+                serializer.Serialize(sw, accounts);
+                sw.Close();
+
+                MessageBox.Show($"File exported to:\n{dialog.SelectedPath}");
+            }
+            catch (Exception m)
+            {
+                MessageBox.Show(m.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

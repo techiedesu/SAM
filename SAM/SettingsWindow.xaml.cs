@@ -80,12 +80,12 @@ namespace SAM
                 if (Convert.ToBoolean(settings.FileService.Read(SamSettings.LoginRecentAccount, SamSettings.SectionAutolog)) == true)
                 {
                     mostRecentCheckBox.IsChecked = true;
-                    recentAccountLabel.Text = MainWindow.encryptedAccounts[Int32.Parse(settings.FileService.Read(SamSettings.RecentAccountIndex, SamSettings.SectionAutolog))].Name;
+                    recentAccountLabel.Text = MainWindow.EncryptedAccounts[Int32.Parse(settings.FileService.Read(SamSettings.RecentAccountIndex, SamSettings.SectionAutolog))].Name;
                 }
                 else if (Convert.ToBoolean(settings.FileService.Read(SamSettings.LoginSelectedAccount, SamSettings.SectionAutolog)) == true)
                 {
                     selectedAccountCheckBox.IsChecked = true;
-                    selectedAccountLabel.Text = MainWindow.encryptedAccounts[Int32.Parse(settings.FileService.Read(SamSettings.SelectedAccountIndex, SamSettings.SectionAutolog))].Name;
+                    selectedAccountLabel.Text = MainWindow.EncryptedAccounts[Int32.Parse(settings.FileService.Read(SamSettings.SelectedAccountIndex, SamSettings.SectionAutolog))].Name;
                 }
                 InputMethodSelectBox.SelectedItem = (VirtualInputMethod)Enum.Parse(typeof(VirtualInputMethod), settings.FileService.Read(SamSettings.InputMethod, SamSettings.SectionAutolog));
                 HandleImeCheckBox.IsChecked = Convert.ToBoolean(settings.FileService.Read(SamSettings.HandleIme, SamSettings.SectionAutolog));
@@ -299,7 +299,7 @@ namespace SAM
                 else
                 {
                     AutoAccIdx = idx;
-                    recentAccountLabel.Text = MainWindow.encryptedAccounts[idx].Name;
+                    recentAccountLabel.Text = MainWindow.EncryptedAccounts[idx].Name;
                     selectedAccountCheckBox.IsChecked = false;
                     selectedAccountLabel.Text = "";
                 }
@@ -333,7 +333,7 @@ namespace SAM
                     mostRecentCheckBox.IsChecked = false;
                     recentAccountLabel.Text = "";
                     AutoAccIdx = idx;
-                    selectedAccountLabel.Text = MainWindow.encryptedAccounts[idx].Name;
+                    selectedAccountLabel.Text = MainWindow.EncryptedAccounts[idx].Name;
                 }
             }
             catch (Exception ex)

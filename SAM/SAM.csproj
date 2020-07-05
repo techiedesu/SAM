@@ -78,7 +78,6 @@
     </Compile>
     <Compile Include="Services\IniFileService.cs" />
     <Compile Include="VirtualInputMethod.cs" />
-    <Compile Include="PriorityMultiValueConverter.cs" />
     <Compile Include="SamSettings.cs" />
     <Compile Include="SetTimeoutWindow.xaml.cs">
       <DependentUpon>SetTimeoutWindow.xaml</DependentUpon>

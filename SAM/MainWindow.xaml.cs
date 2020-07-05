@@ -144,7 +144,7 @@ namespace SAM
                 {
                     try
                     {
-                        encryptedAccounts = Utils.PasswordDeserialize(dataFile, passwordDialog.PasswordText);
+                        EncryptedAccounts = Utils.PasswordDeserialize(dataFile, passwordDialog.PasswordText);
                         messageBoxResult = MessageBoxResult.None;
                     }
                     catch (Exception e)
@@ -308,7 +308,7 @@ namespace SAM
                     column.DisplayIndex = (int)settings.User.KeyValuePairs[settings.ListViewColumns[column.Header.ToString()]];
                 }
 
-                AccountsDataGrid.ItemsSource = encryptedAccounts;
+                AccountsDataGrid.ItemsSource = EncryptedAccounts;
                 AccountsDataGrid.Visibility = Visibility.Visible;
             }
 
@@ -392,7 +392,7 @@ namespace SAM
                     {
                         try
                         {
-                            encryptedAccounts = Utils.PasswordDeserialize(dataFile, ePassword);
+                            EncryptedAccounts = Utils.PasswordDeserialize(dataFile, ePassword);
                             messageBoxResult = MessageBoxResult.None;
                         }
                         catch (Exception e)
@@ -409,18 +409,18 @@ namespace SAM
                 }
                 else
                 {
-                    encryptedAccounts = Utils.Deserialize(dataFile);
+                    EncryptedAccounts = Utils.Deserialize(dataFile);
                 }
 
                 PostDeserializedRefresh(true);
             }
             else
             {
-                encryptedAccounts = new List<Account>();
+                EncryptedAccounts = new List<Account>();
                 SerializeAccounts();
             }
 
-            AccountsDataGrid.ItemsSource = encryptedAccounts;
+            AccountsDataGrid.ItemsSource = EncryptedAccounts;
 
             if (firstLoad && settings.User.AutoReloadEnabled && Utils.ShouldAutoReload(settings.User.LastAutoReload, settings.User.AutoReloadInterval))
             {
@@ -472,7 +472,7 @@ namespace SAM
             var steamIds = new List<string>();
 
             // TODO: Something weird with var naming.
-            foreach (var account in encryptedAccounts)
+            foreach (var account in EncryptedAccounts)
             {
                 if (!string.IsNullOrEmpty(account.SteamId))
                 {
@@ -508,7 +508,7 @@ namespace SAM
             {
                 foreach (var userInfoJson in userInfosJson.response.players)
                 {
-                    var account = encryptedAccounts.SingleOrDefault(a => a.SteamId == Convert.ToString(userInfoJson.steamid));
+                    var account = EncryptedAccounts.SingleOrDefault(a => a.SteamId == Convert.ToString(userInfoJson.steamid));
 
                     if (account != null)
                     {
@@ -526,7 +526,7 @@ namespace SAM
                 {
                     foreach (var userBanJson in userBansJson.players)
                     {
-                        var account = encryptedAccounts.SingleOrDefault(a => a.SteamId == Convert.ToString(userBanJson.SteamId));
+                        var account = EncryptedAccounts.SingleOrDefault(a => a.SteamId == Convert.ToString(userBanJson.SteamId));
 
                         if (account != null)
                         {
@@ -563,9 +563,9 @@ namespace SAM
 
             timeoutTimers = new List<Timer>();
 
-            if (encryptedAccounts != null)
+            if (EncryptedAccounts != null)
             {
-                foreach (var account in encryptedAccounts)
+                foreach (var account in EncryptedAccounts)
                 {
                     var tempPass = StringCipher.Decrypt(account.Password, eKey);
 
@@ -596,9 +596,9 @@ namespace SAM
                 {
                     SetMainScrollViewerBarsVisibility(ScrollBarVisibility.Auto);
 
-                    for (var i = 0; i < encryptedAccounts.Count; i++)
+                    for (var i = 0; i < EncryptedAccounts.Count; i++)
                     {
-                        var account = encryptedAccounts[i];
+                        var account = EncryptedAccounts[i];
 
                         var index = i;
 
@@ -628,7 +628,7 @@ namespace SAM
                     var buttonOffset = settings.User.ButtonSize + 5;
 
                     // Create new button and textblock for each account
-                    foreach (var account in encryptedAccounts)
+                    foreach (var account in EncryptedAccounts)
                     {
                         var accountButtonGrid = new Grid();
 
@@ -790,7 +790,7 @@ namespace SAM
                         xCounter++;
 
                         if (bCounter % settings.User.AccountsPerRow == 0 &&
-                            (!settings.User.HideAddButton || settings.User.HideAddButton && bCounter != encryptedAccounts.Count))
+                            (!settings.User.HideAddButton || settings.User.HideAddButton && bCounter != EncryptedAccounts.Count))
                         {
                             yCounter++;
                             xCounter = 0;
@@ -976,12 +976,12 @@ namespace SAM
                 // If the auto login checkbox was checked, update settings file and global variables. 
                 if (dialog.AutoLogAccountIndex)
                 {
-                    settings.FileService.Write(SamSettings.SelectedAccountIndex, (encryptedAccounts.Count + 1).ToString(), SamSettings.SectionAutolog);
+                    settings.FileService.Write(SamSettings.SelectedAccountIndex, (EncryptedAccounts.Count + 1).ToString(), SamSettings.SectionAutolog);
                     settings.FileService.Write(SamSettings.LoginSelectedAccount, true.ToString(), SamSettings.SectionAutolog);
                     settings.FileService.Write(SamSettings.LoginRecentAccount, false.ToString(), SamSettings.SectionAutolog);
                     settings.User.LoginSelectedAccount = true;
                     settings.User.LoginRecentAccount = false;
-                    settings.User.SelectedAccountIndex = encryptedAccounts.Count + 1;
+                    settings.User.SelectedAccountIndex = EncryptedAccounts.Count + 1;
                 }
 
                 try
@@ -1000,15 +1000,15 @@ namespace SAM
 
                     await ReloadAccount(newAccount);
 
-                    encryptedAccounts.Add(newAccount);
+                    EncryptedAccounts.Add(newAccount);
                     SerializeAccounts();
                 }
                 catch (Exception m)
                 {
                     MessageBox.Show(m.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
-                    var itemToRemove = encryptedAccounts.Single(r => r.Name == dialog.AccountText);
-                    encryptedAccounts.Remove(itemToRemove);
+                    var itemToRemove = EncryptedAccounts.Single(r => r.Name == dialog.AccountText);
+                    EncryptedAccounts.Remove(itemToRemove);
 
                     SerializeAccounts();
                     AddAccount();
@@ -1063,14 +1063,14 @@ namespace SAM
 
                 try
                 {
-                    encryptedAccounts[index].Name = dialog.AccountText;
-                    encryptedAccounts[index].Alias = dialog.AliasText;
-                    encryptedAccounts[index].Password = StringCipher.Encrypt(dialog.PasswordText, eKey);
-                    encryptedAccounts[index].SharedSecret = StringCipher.Encrypt(dialog.SharedSecretText, eKey);
-                    encryptedAccounts[index].ProfUrl = dialog.UrlText;
-                    encryptedAccounts[index].AviUrl = aviUrl;
-                    encryptedAccounts[index].SteamId = dialog.SteamId;
-                    encryptedAccounts[index].Description = dialog.DescriptionText;
+                    EncryptedAccounts[index].Name = dialog.AccountText;
+                    EncryptedAccounts[index].Alias = dialog.AliasText;
+                    EncryptedAccounts[index].Password = StringCipher.Encrypt(dialog.PasswordText, eKey);
+                    EncryptedAccounts[index].SharedSecret = StringCipher.Encrypt(dialog.SharedSecretText, eKey);
+                    EncryptedAccounts[index].ProfUrl = dialog.UrlText;
+                    EncryptedAccounts[index].AviUrl = aviUrl;
+                    EncryptedAccounts[index].SteamId = dialog.SteamId;
+                    EncryptedAccounts[index].Description = dialog.DescriptionText;
 
                     SerializeAccounts();
                 }
@@ -1088,7 +1088,7 @@ namespace SAM
 
             if (result == MessageBoxResult.Yes)
             {
-                encryptedAccounts.RemoveAt(index);
+                EncryptedAccounts.RemoveAt(index);
                 SerializeAccounts();
             }
         }
@@ -1101,7 +1101,7 @@ namespace SAM
                 return;
             }
 
-            if (encryptedAccounts[index].HasActiveTimeout())
+            if (EncryptedAccounts[index].HasActiveTimeout())
             {
                 var result = MessageBox.Show("Account timeout is active!\nLogin anyway?", "Timeout", MessageBoxButton.YesNo, MessageBoxImage.Warning, 0,
                     MessageBoxOptions.DefaultDesktopOnly);
@@ -1406,14 +1406,14 @@ namespace SAM
 
         private void SortAccounts(int type)
         {
-            if (encryptedAccounts.Count > 0)
+            if (EncryptedAccounts.Count > 0)
             {
-                encryptedAccounts = type switch
+                EncryptedAccounts = type switch
                 {
                     // Alphabetical sort based on account name.
-                    0 => encryptedAccounts.OrderBy(a => a.Name).ToList(),
-                    1 => encryptedAccounts.OrderBy(a => Guid.NewGuid()).ToList(),
-                    _ => encryptedAccounts
+                    0 => EncryptedAccounts.OrderBy(a => a.Name).ToList(),
+                    1 => EncryptedAccounts.OrderBy(a => Guid.NewGuid()).ToList(),
+                    _ => EncryptedAccounts
                 };
 
                 SerializeAccounts();
@@ -1423,16 +1423,16 @@ namespace SAM
         private void SerializeAccounts()
         {
             if (IsPasswordProtected() && ePassword.Length > 0)
-                Utils.PasswordSerialize(encryptedAccounts, ePassword);
+                Utils.PasswordSerialize(EncryptedAccounts, ePassword);
             else
-                Utils.Serialize(encryptedAccounts);
+                Utils.Serialize(EncryptedAccounts);
 
             RefreshWindow();
         }
 
         private void ExportAccount(int index)
         {
-            Utils.ExportSelectedAccounts(new List<Account> { encryptedAccounts[index] });
+            Utils.ExportSelectedAccounts(new List<Account> { EncryptedAccounts[index] });
         }
 
         private void ContextMenu_ContextMenuOpening(object sender, ContextMenuEventArgs e)
@@ -1515,7 +1515,7 @@ namespace SAM
 
         private void TimeoutTimer_Tick(int index, TextBlock timeoutLabel, Timer timeoutTimer)
         {
-            var timeLeft = encryptedAccounts[index].Timeout - DateTime.Now;
+            var timeLeft = EncryptedAccounts[index].Timeout - DateTime.Now;
 
             if (timeLeft.Value.CompareTo(TimeSpan.Zero) <= 0)
             {
@@ -1534,19 +1534,19 @@ namespace SAM
 
         private void TimeoutTimer_Tick(int index, Timer timeoutTimer)
         {
-            var timeLeft = encryptedAccounts[index].Timeout - DateTime.Now;
+            var timeLeft = EncryptedAccounts[index].Timeout - DateTime.Now;
 
             if (timeLeft.Value.CompareTo(TimeSpan.Zero) <= 0)
             {
                 timeoutTimer.Stop();
                 timeoutTimer.Dispose();
 
-                encryptedAccounts[index].TimeoutTimeLeft = null;
+                EncryptedAccounts[index].TimeoutTimeLeft = null;
                 AccountButtonClearTimeout_Click(index);
             }
             else
             {
-                encryptedAccounts[index].TimeoutTimeLeft = timeLeft.Value.FormatTimespanString();
+                EncryptedAccounts[index].TimeoutTimeLeft = timeLeft.Value.FormatTimespanString();
             }
         }
 
@@ -1619,7 +1619,7 @@ namespace SAM
 
         #region Globals
 
-        public static List<Account> encryptedAccounts;
+        public static List<Account> EncryptedAccounts;
         private static List<Account> decryptedAccounts;
         private static Dictionary<int, Account> exportAccounts;
         private static Dictionary<int, Account> deleteAccounts;
@@ -1667,7 +1667,7 @@ namespace SAM
 
         // Resize animation variables
         private static System.Windows.Forms.Timer _timer = new System.Windows.Forms.Timer();
-        private int _Stop;
+        private int _stop;
         private double _ratioHeight;
         private double _ratioWidth;
         private double _height;
@@ -1688,24 +1688,24 @@ namespace SAM
 
         private void Timer_Tick(object myObject, EventArgs myEventArgs)
         {
-            if (_Stop == 0)
+            if (_stop == 0)
             {
                 _ratioHeight = (Height - _height) / 5 * -1;
                 _ratioWidth = (Width - _width) / 5 * -1;
             }
 
-            _Stop++;
+            _stop++;
 
             Height += _ratioHeight;
             Width += _ratioWidth;
 
-            if (_Stop == 5)
+            if (_stop == 5)
             {
                 _timer.Stop();
                 _timer.Enabled = false;
                 _timer.Dispose();
 
-                _Stop = 0;
+                _stop = 0;
 
                 Height = _height;
                 Width = _width;
@@ -1814,7 +1814,7 @@ namespace SAM
         private void AccountButtonSetTimeout_Click(int index, DateTime timeout)
         {
             if (timeout != null && timeout != new DateTime())
-                encryptedAccounts[index].Timeout = timeout;
+                EncryptedAccounts[index].Timeout = timeout;
             else
                 //MessageBox.Show("Error setting account timeout.");
                 return;
@@ -1824,12 +1824,12 @@ namespace SAM
 
         private void AccountButtonSetCustomTimeout_Click(int index)
         {
-            var setTimeoutWindow = new SetTimeoutWindow(encryptedAccounts[index].Timeout);
+            var setTimeoutWindow = new SetTimeoutWindow(EncryptedAccounts[index].Timeout);
             setTimeoutWindow.ShowDialog();
 
             if (setTimeoutWindow.timeout != null && setTimeoutWindow.timeout != new DateTime())
             {
-                encryptedAccounts[index].Timeout = setTimeoutWindow.timeout;
+                EncryptedAccounts[index].Timeout = setTimeoutWindow.timeout;
             }
             else
             {
@@ -1842,7 +1842,7 @@ namespace SAM
 
         private void AccountButtonClearTimeout_Click(int index)
         {
-            encryptedAccounts[index].Timeout = null;
+            EncryptedAccounts[index].Timeout = null;
             SerializeAccounts();
         }
 
@@ -1861,7 +1861,7 @@ namespace SAM
                 }
                 else
                 {
-                    exportAccounts.Add(index, encryptedAccounts[index]);
+                    exportAccounts.Add(index, EncryptedAccounts[index]);
                     btn.Opacity = 0.5;
                 }
             }
@@ -1869,7 +1869,7 @@ namespace SAM
 
         public async Task ReloadAccount_ClickAsync(int index)
         {
-            await ReloadAccount(encryptedAccounts[index]);
+            await ReloadAccount(EncryptedAccounts[index]);
             SerializeAccounts();
             MessageBox.Show("Done!");
         }
@@ -1885,14 +1885,14 @@ namespace SAM
 
             if (settingsDialog.Decrypt)
             {
-                Utils.Serialize(encryptedAccounts);
+                Utils.Serialize(EncryptedAccounts);
                 ePassword = "";
             }
             else if (settingsDialog.Password != null)
             {
                 ePassword = settingsDialog.Password;
 
-                if (previousPass != ePassword) Utils.PasswordSerialize(encryptedAccounts, ePassword);
+                if (previousPass != ePassword) Utils.PasswordSerialize(EncryptedAccounts, ePassword);
             }
 
             LoadSettings();
@@ -1906,8 +1906,8 @@ namespace SAM
 
             if (result == MessageBoxResult.Yes)
             {
-                var accountsToDelete = encryptedAccounts.Where(a => a.NumberOfVacBans > 0 || a.NumberOfGameBans > 0).ToList();
-                accountsToDelete.ForEach(a => encryptedAccounts.Remove(a));
+                var accountsToDelete = EncryptedAccounts.Where(a => a.NumberOfVacBans > 0 || a.NumberOfGameBans > 0).ToList();
+                accountsToDelete.ForEach(a => EncryptedAccounts.Remove(a));
 
 
                 SerializeAccounts();
@@ -2039,7 +2039,7 @@ namespace SAM
                 {
                     var accountButton = accountButtonGrid.Children.OfType<Button>().FirstOrDefault();
 
-                    accountButton.Style = (Style)Resources["ExportButtonStyle"];
+                    accountButton.Style = (Style) Resources["ExportButtonStyle"];
                     accountButton.Click -= AccountButton_Click;
                     accountButton.Click += AccountButtonExport_Click;
                     accountButton.PreviewMouseLeftButtonDown -= AccountButton_MouseDown;
@@ -2062,7 +2062,7 @@ namespace SAM
                     exportAccounts.Add(i, AccountsDataGrid.SelectedItems[i] as Account);
                 }
 
-            if (exportAccounts.Count > 0)
+            if (exportAccounts.Any())
                 Utils.ExportSelectedAccounts(exportAccounts.Values.ToList());
             else
                 MessageBox.Show("No accounts selected to export!");
@@ -2077,7 +2077,7 @@ namespace SAM
 
         private void DeleteAllAccountsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (encryptedAccounts.Count > 0)
+            if (EncryptedAccounts.Count > 0)
             {
                 var messageBoxResult =
                     MessageBox.Show("Are you sure you want to delete all accounts?\nThis action will perminantly delete the account data file.", "Confirm",
@@ -2150,7 +2150,7 @@ namespace SAM
                 }
                 else
                 {
-                    deleteAccounts.Add(index, encryptedAccounts[index]);
+                    deleteAccounts.Add(index, EncryptedAccounts[index]);
                     btn.Opacity = 0.5;
                 }
             }
@@ -2178,7 +2178,7 @@ namespace SAM
                 {
                     foreach (var account in deleteAccounts.Values.ToList())
                     {
-                        encryptedAccounts.Remove(account);
+                        EncryptedAccounts.Remove(account);
                     }
 
                     SerializeAccounts();
@@ -2236,7 +2236,7 @@ namespace SAM
             if (AccountsDataGrid.SelectedItem != null && deleting == false)
             {
                 var account = AccountsDataGrid.SelectedItem as Account;
-                var index = encryptedAccounts.FindIndex(a => a.Name == account.Name);
+                var index = EncryptedAccounts.FindIndex(a => a.Name == account.Name);
                 Login(index, 0);
             }
         }
@@ -2254,7 +2254,7 @@ namespace SAM
             else if (AccountsDataGrid.SelectedItem != null)
             {
                 var account = AccountsDataGrid.SelectedItem as Account;
-                var index = encryptedAccounts.FindIndex(a => a.Name == account.Name);
+                var index = EncryptedAccounts.FindIndex(a => a.Name == account.Name);
                 AccountsDataGrid.ContextMenu = GenerateAccountContextMenu(account, index);
             }
         }
