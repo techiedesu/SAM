@@ -69,6 +69,7 @@
     </ApplicationDefinition>
     <Compile Include="Extensions\AccountExtensions.cs" />
     <Compile Include="Extensions\CharExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
     <Compile Include="Helpers\SteamHelper.cs" />
     <Compile Include="Models\Account.cs" />

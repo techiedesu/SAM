@@ -278,7 +278,7 @@ namespace SAM
                     }
                 }
 
-                if (string.IsNullOrEmpty(steamPath))
+                if (steamPath.IsNullOrEmpty())
                 {
                     var messageBoxResult = MessageBox.Show("Steam path required!\n\nTry again?", "Confirm", MessageBoxButton.YesNo);
 

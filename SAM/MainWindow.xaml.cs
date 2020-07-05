@@ -44,7 +44,7 @@ namespace SAM
     ///     Interaction logic for MainWindow.xaml
     /// </summary>
     [Serializable]
-    public partial class MainWindow : MetroWindow
+    public partial class MainWindow
     {
         public MainWindow()
         {
@@ -58,8 +58,8 @@ namespace SAM
             Loaded += MainWindow_Loaded;
             BackgroundBorder.PreviewMouseLeftButtonDown += (s, e) => { DragMove(); };
 
-            _timer.Tick += Timer_Tick;
-            _timer.Interval = 10;
+            Timer.Tick += Timer_Tick;
+            Timer.Interval = 10;
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -68,7 +68,7 @@ namespace SAM
             assemblyVer = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             var ver = new MenuItem();
-            var newExistMenuItem = (MenuItem)FileMenu.Items[2];
+            var newExistMenuItem = (MenuItem) FileMenu.Items[2];
             ver.Header = "v" + assemblyVer;
             ver.IsEnabled = false;
             newExistMenuItem.Items.Add(ver);
@@ -88,12 +88,8 @@ namespace SAM
 
             loginThreads = new List<Thread>();
 
-            // Save New Button inital margin.
+            // Save New Button initial margin.
             initialAddButtonGridMargin = AddButtonGrid.Margin;
-
-            // Save initial window height and width;
-            originalHeight = Height;
-            originalWidth = Width;
 
             // Load window with account buttons.
             RefreshWindow();
@@ -144,12 +140,13 @@ namespace SAM
                 {
                     try
                     {
+                        // TODO: Wtf is going on.
                         EncryptedAccounts = Utils.PasswordDeserialize(DataFile, passwordDialog.PasswordText);
                         messageBoxResult = MessageBoxResult.None;
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine(e.Message);
+                        Console.WriteLine(ex.Message);
                         messageBoxResult = MessageBox.Show("Invalid Password", "Invalid", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
 
                         return messageBoxResult != MessageBoxResult.Cancel && VerifyPassword();
@@ -214,9 +211,8 @@ namespace SAM
 
                         case SamSettings.SleepTime:
                             var sleepTimeString = settings.FileService.Read(SamSettings.SleepTime, SamSettings.Sections.General);
-                            var sleepTime = 0;
 
-                            if (!Regex.IsMatch(sleepTimeString, @"^\d+$") || !int.TryParse(sleepTimeString, out sleepTime) || sleepTime < 0 || sleepTime > 100)
+                            if (!Regex.IsMatch(sleepTimeString, @"^\d+$") || !int.TryParse(sleepTimeString, out var sleepTime) || sleepTime < 0 || sleepTime > 100)
                             {
                                 settings.FileService.Write(SamSettings.SleepTime, settings.Default.SleepTime.ToString(), SamSettings.Sections.General);
                                 settings.User.SleepTime = settings.Default.SleepTime * 1000;
@@ -235,9 +231,8 @@ namespace SAM
 
                         case SamSettings.ButtonSize:
                             var buttonSizeString = settings.FileService.Read(SamSettings.ButtonSize, SamSettings.Sections.Customize);
-                            var buttonSize = 0;
 
-                            if (!Regex.IsMatch(buttonSizeString, @"^\d+$") || !int.TryParse(buttonSizeString, out buttonSize) || buttonSize < 50 ||
+                            if (!Regex.IsMatch(buttonSizeString, @"^\d+$") || !int.TryParse(buttonSizeString, out var buttonSize) || buttonSize < 50 ||
                                 buttonSize > 200)
                             {
                                 settings.FileService.Write(SamSettings.ButtonSize, "100", SamSettings.Sections.Customize);
@@ -251,7 +246,7 @@ namespace SAM
                             break;
 
                         case SamSettings.InputMethod:
-                            settings.User.VirtualInputMethod = (VirtualInputMethod)Enum.Parse(typeof(VirtualInputMethod),
+                            settings.User.VirtualInputMethod = (VirtualInputMethod) Enum.Parse(typeof(VirtualInputMethod),
                                 settings.FileService.Read(SamSettings.InputMethod, SamSettings.Sections.Autolog));
                             break;
 
@@ -260,7 +255,7 @@ namespace SAM
                             {
                                 case TypeCode.Boolean:
                                     settings.User.KeyValuePairs[entry.Key] = Convert.ToBoolean(settings.FileService.Read(entry.Key, entry.Value));
-                                    if (entry.Value.Equals(SamSettings.Sections.Parameters) && (bool)settings.User.KeyValuePairs[entry.Key] &&
+                                    if (entry.Value.Equals(SamSettings.Sections.Parameters) && (bool) settings.User.KeyValuePairs[entry.Key] &&
                                         !entry.Key.StartsWith("custom")) launchParameters.Add("-" + entry.Key);
                                     break;
 
@@ -305,7 +300,7 @@ namespace SAM
 
                 foreach (var column in AccountsDataGrid.Columns)
                 {
-                    column.DisplayIndex = (int)settings.User.KeyValuePairs[settings.ListViewColumns[column.Header.ToString()]];
+                    column.DisplayIndex = (int) settings.User.KeyValuePairs[settings.ListViewColumns[column.Header.ToString()]];
                 }
 
                 AccountsDataGrid.ItemsSource = EncryptedAccounts;
@@ -429,39 +424,39 @@ namespace SAM
             }
         }
 
-        private async Task ReloadAccount(Account account)
+        private async Task ReloadAccount(Account selectedAccount)
         {
             dynamic userJson;
 
-            if (!string.IsNullOrEmpty(account.SteamId))
-                userJson = await Utils.GetUserInfoFromWebApiBySteamId(account.SteamId);
+            if (!selectedAccount.SteamId.IsNullOrEmpty())
+                userJson = await Utils.GetUserInfoFromWebApiBySteamId(selectedAccount.SteamId);
             else
-                userJson = await Utils.GetUserInfoFromConfigAndWebApi(account.Name);
+                userJson = await Utils.GetUserInfoFromConfigAndWebApi(selectedAccount.Name);
 
             if (userJson != null)
             {
-                account.ProfUrl = userJson.response.players[0].profileurl;
-                account.AviUrl = userJson.response.players[0].avatarfull;
-                account.SteamId = userJson.response.players[0].steamid;
+                selectedAccount.ProfUrl = userJson.response.players[0].profileurl;
+                selectedAccount.AviUrl = userJson.response.players[0].avatarfull;
+                selectedAccount.SteamId = userJson.response.players[0].steamid;
             }
             else
             {
-                account.AviUrl = await Utils.HtmlAviScrapeAsync(account.ProfUrl);
+                selectedAccount.AviUrl = await Utils.HtmlAviScrapeAsync(selectedAccount.ProfUrl);
             }
 
-            if (!string.IsNullOrEmpty(account.SteamId) && Utils.ApiKeyExists())
+            if (!selectedAccount.SteamId.IsNullOrEmpty() && Utils.ApiKeyExists())
             {
-                var userBanJson = await Utils.GetPlayerBansFromWebApi(account.SteamId);
+                var userBanJson = await Utils.GetPlayerBansFromWebApi(selectedAccount.SteamId);
 
-                if (userBanJson != null)
-                {
-                    account.CommunityBanned = Convert.ToBoolean(userBanJson.CommunityBanned);
-                    account.IsVacBanned = Convert.ToBoolean(userBanJson.VACBanned);
-                    account.NumberOfVacBans = Convert.ToInt32(userBanJson.NumberOfVACBans);
-                    account.NumberOfGameBans = Convert.ToInt32(userBanJson.NumberOfGameBans);
-                    account.DaysSinceLastBan = Convert.ToInt32(userBanJson.DaysSinceLastBan);
-                    account.EconomyBan = userBanJson.EconomyBan;
-                }
+                if (userBanJson == null)
+                    return;
+
+                selectedAccount.CommunityBanned = Convert.ToBoolean(userBanJson.CommunityBanned);
+                selectedAccount.IsVacBanned = Convert.ToBoolean(userBanJson.VACBanned);
+                selectedAccount.NumberOfVacBans = Convert.ToInt32(userBanJson.NumberOfVACBans);
+                selectedAccount.NumberOfGameBans = Convert.ToInt32(userBanJson.NumberOfGameBans);
+                selectedAccount.DaysSinceLastBan = Convert.ToInt32(userBanJson.DaysSinceLastBan);
+                selectedAccount.EconomyBan = userBanJson.EconomyBan;
             }
         }
 
@@ -471,29 +466,24 @@ namespace SAM
 
             var steamIds = new List<string>();
 
-            // TODO: Something weird with var naming.
-            foreach (var account in EncryptedAccounts)
+            foreach (var encryptedAccount in EncryptedAccounts)
             {
-                if (!string.IsNullOrEmpty(account.SteamId))
-                {
-                    steamIds.Add(account.SteamId);
-                }
+                if (!encryptedAccount.SteamId.IsNullOrEmpty())
+                    steamIds.Add(encryptedAccount.SteamId);
                 else
                 {
-                    var steamId = Utils.GetSteamIdFromConfig(account.Name);
-                    if (!string.IsNullOrEmpty(steamId))
-                    {
+                    var steamId = Utils.GetSteamIdFromConfig(encryptedAccount.Name);
+                    if (!steamId.IsNullOrEmpty())
                         steamIds.Add(steamId);
-                    }
-                    else if (!string.IsNullOrEmpty(account.ProfUrl))
+                    else if (!encryptedAccount.ProfUrl.IsNullOrEmpty())
                     {
                         // Try to get steamId from profile URL via web API.
 
-                        dynamic steamIdFromProfileUrl = await Utils.GetSteamIdFromProfileUrl(account.ProfUrl);
+                        dynamic steamIdFromProfileUrl = await Utils.GetSteamIdFromProfileUrl(encryptedAccount.ProfUrl);
 
                         if (steamIdFromProfileUrl != null)
                         {
-                            account.SteamId = steamIdFromProfileUrl;
+                            encryptedAccount.SteamId = steamIdFromProfileUrl;
                             steamIds.Add(steamIdFromProfileUrl);
                         }
 
@@ -508,13 +498,14 @@ namespace SAM
             {
                 foreach (var userInfoJson in userInfosJson.response.players)
                 {
-                    var account = EncryptedAccounts.SingleOrDefault(a => a.SteamId == Convert.ToString(userInfoJson.steamid));
+                    var encryptedAccount = EncryptedAccounts.SingleOrDefault(a => a.SteamId == Convert.ToString(userInfoJson.steamid));
 
-                    if (account != null)
-                    {
-                        account.ProfUrl = userInfoJson.profileurl;
-                        account.AviUrl = userInfoJson.avatarfull;
-                    }
+                    if (encryptedAccount == null)
+                        continue;
+
+                    encryptedAccount.ProfUrl = userInfoJson.profileurl;
+                    encryptedAccount.AviUrl = userInfoJson.avatarfull;
+
                 }
             }
 
@@ -526,17 +517,17 @@ namespace SAM
                 {
                     foreach (var userBanJson in userBansJson.players)
                     {
-                        var account = EncryptedAccounts.SingleOrDefault(a => a.SteamId == Convert.ToString(userBanJson.SteamId));
+                        var encryptedAccount = EncryptedAccounts.SingleOrDefault(a => a.SteamId == Convert.ToString(userBanJson.SteamId));
 
-                        if (account != null)
-                        {
-                            account.CommunityBanned = Convert.ToBoolean(userBanJson.CommunityBanned);
-                            account.IsVacBanned = Convert.ToBoolean(userBanJson.VACBanned);
-                            account.NumberOfVacBans = Convert.ToInt32(userBanJson.NumberOfVACBans);
-                            account.NumberOfGameBans = Convert.ToInt32(userBanJson.NumberOfGameBans);
-                            account.DaysSinceLastBan = Convert.ToInt32(userBanJson.DaysSinceLastBan);
-                            account.EconomyBan = userBanJson.EconomyBan;
-                        }
+                        if (encryptedAccount == null)
+                            continue;
+
+                        encryptedAccount.CommunityBanned = Convert.ToBoolean(userBanJson.CommunityBanned);
+                        encryptedAccount.IsVacBanned = Convert.ToBoolean(userBanJson.VACBanned);
+                        encryptedAccount.NumberOfVacBans = Convert.ToInt32(userBanJson.NumberOfVACBans);
+                        encryptedAccount.NumberOfGameBans = Convert.ToInt32(userBanJson.NumberOfGameBans);
+                        encryptedAccount.DaysSinceLastBan = Convert.ToInt32(userBanJson.DaysSinceLastBan);
+                        encryptedAccount.EconomyBan = userBanJson.EconomyBan;
                     }
                 }
             }
@@ -555,39 +546,43 @@ namespace SAM
 
             // Dispose and reinitialize timers each time grid is refreshed as to not clog up more resources than necessary. 
             if (timeoutTimers != null)
-                foreach (var timer in timeoutTimers)
+            {
+                foreach (var timeoutTimer in timeoutTimers)
                 {
-                    timer.Stop();
-                    timer.Dispose();
+                    timeoutTimer.Stop();
+                    timeoutTimer.Dispose();
                 }
+            }
 
             timeoutTimers = new List<Timer>();
 
             if (EncryptedAccounts != null)
             {
-                foreach (var account in EncryptedAccounts)
+                foreach (var encryptedAccount in EncryptedAccounts)
                 {
-                    var tempPass = StringCipher.Decrypt(account.Password, eKey);
+                    var tempPass = StringCipher.Decrypt(encryptedAccount.Password, EKey);
 
                     if (seedAcc)
                     {
-                        string temp2fa = null;
+                        string temp2Fa = null;
                         string steamId = null;
 
-                        if (!string.IsNullOrEmpty(account.SharedSecret)) temp2fa = StringCipher.Decrypt(account.SharedSecret, eKey);
-                        if (!string.IsNullOrEmpty(account.SteamId)) steamId = account.SteamId;
+                        if (!encryptedAccount.SharedSecret.IsNullOrEmpty())
+                            temp2Fa = StringCipher.Decrypt(encryptedAccount.SharedSecret, EKey);
+                        if (!encryptedAccount.SteamId.IsNullOrEmpty())
+                            steamId = encryptedAccount.SteamId;
 
                         decryptedAccounts.Add(new Account
                         {
-                            Name = account.Name,
-                            Alias = account.Alias,
+                            Name = encryptedAccount.Name,
+                            Alias = encryptedAccount.Alias,
                             Password = tempPass,
-                            SharedSecret = temp2fa,
-                            ProfUrl = account.ProfUrl,
-                            AviUrl = account.AviUrl,
+                            SharedSecret = temp2Fa,
+                            ProfUrl = encryptedAccount.ProfUrl,
+                            AviUrl = encryptedAccount.AviUrl,
                             SteamId = steamId,
-                            Timeout = account.Timeout,
-                            Description = account.Description
+                            Timeout = encryptedAccount.Timeout,
+                            Description = encryptedAccount.Description
                         });
                     }
                 }
@@ -598,22 +593,22 @@ namespace SAM
 
                     for (var i = 0; i < EncryptedAccounts.Count; i++)
                     {
-                        var account = EncryptedAccounts[i];
+                        var encryptedAccount = EncryptedAccounts[i];
 
                         var index = i;
 
                         TaskBarIconLoginContextMenu.IsEnabled = true;
-                        TaskBarIconLoginContextMenu.Items.Add(GenerateTaskBarMenuItem(index, account));
+                        TaskBarIconLoginContextMenu.Items.Add(GenerateTaskBarMenuItem(index, encryptedAccount));
 
-                        if (account.HasActiveTimeout())
-                        {
-                            var timeoutTimer = new Timer();
-                            timeoutTimers.Add(timeoutTimer);
+                        if (!encryptedAccount.HasActiveTimeout())
+                            continue;
 
-                            timeoutTimer.Elapsed += delegate { Dispatcher.Invoke(() => { TimeoutTimer_Tick(index, timeoutTimer); }); };
-                            timeoutTimer.Interval = 1000;
-                            timeoutTimer.Enabled = true;
-                        }
+                        var timeoutTimer = new Timer();
+                        timeoutTimers.Add(timeoutTimer);
+
+                        timeoutTimer.Elapsed += delegate { Dispatcher.Invoke(() => { TimeoutTimer_Tick(index, timeoutTimer); }); };
+                        timeoutTimer.Interval = 1000;
+                        timeoutTimer.Enabled = true;
                     }
                 }
                 else
@@ -628,7 +623,7 @@ namespace SAM
                     var buttonOffset = settings.User.ButtonSize + 5;
 
                     // Create new button and textblock for each account
-                    foreach (var account in EncryptedAccounts)
+                    foreach (var encryptedAccount in EncryptedAccounts)
                     {
                         var accountButtonGrid = new Grid();
 
@@ -638,16 +633,14 @@ namespace SAM
 
                         var accountImage = new Border();
 
-                        accountButton.Style = (Style)Resources["SAMButtonStyle"];
+                        accountButton.Style = (Style) Resources["SAMButtonStyle"];
                         accountButton.Tag = bCounter.ToString();
 
-                        if (!string.IsNullOrEmpty(account.Alias))
-                            accountText.Text = account.Alias;
-                        else
-                            accountText.Text = account.Name;
+                        accountText.Text = !encryptedAccount.Alias.IsNullOrEmpty() ? encryptedAccount.Alias : encryptedAccount.Name;
 
                         // If there is a description, set up tooltip.
-                        if (!string.IsNullOrEmpty(account.Description)) accountButton.ToolTip = account.Description;
+                        if (!encryptedAccount.Description.IsNullOrEmpty()) 
+                            accountButton.ToolTip = encryptedAccount.Description;
 
                         accountButtonGrid.HorizontalAlignment = HorizontalAlignment.Left;
                         accountButtonGrid.VerticalAlignment = VerticalAlignment.Top;
@@ -671,8 +664,8 @@ namespace SAM
                         accountText.Margin = new Thickness(0, 0, 0, 7);
                         accountText.Padding = new Thickness(0, 0, 0, 1);
                         accountText.TextAlignment = TextAlignment.Center;
-                        accountText.Foreground = new SolidColorBrush((Color)ConvertFromString(settings.User.BannerFontColor));
-                        accountText.Background = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonBannerColor));
+                        accountText.Foreground = new SolidColorBrush((Color) ConvertFromString(settings.User.BannerFontColor));
+                        accountText.Background = new SolidColorBrush((Color) ConvertFromString(settings.User.ButtonBannerColor));
                         accountText.Visibility = Visibility.Collapsed;
 
                         timeoutTextBlock.Width = settings.User.ButtonSize;
@@ -690,39 +683,33 @@ namespace SAM
                         accountImage.VerticalAlignment = VerticalAlignment.Center;
                         accountImage.CornerRadius = new CornerRadius(3);
 
-                        if (account.ProfUrl == "" || account.AviUrl == null || account.AviUrl == "" || account.AviUrl == " ")
+                        if (encryptedAccount.ProfUrl == "" || encryptedAccount.AviUrl == null || encryptedAccount.AviUrl == "" || encryptedAccount.AviUrl == " ")
                         {
-                            accountImage.Background = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonColor));
-                            accountButton.Foreground = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonFontColor));
+                            accountImage.Background = new SolidColorBrush((Color) ConvertFromString(settings.User.ButtonColor));
+                            accountButton.Foreground = new SolidColorBrush((Color) ConvertFromString(settings.User.ButtonFontColor));
                             timeoutTextBlock.Margin = new Thickness(0, 0, 0, 50);
 
-                            if (!string.IsNullOrEmpty(account.Alias))
-                                accountButton.Content = account.Alias;
-                            else
-                                accountButton.Content = account.Name;
+                            accountButton.Content = !encryptedAccount.Alias.IsNullOrEmpty() ? encryptedAccount.Alias : encryptedAccount.Name;
                         }
                         else
                         {
                             try
                             {
                                 var imageBrush = new ImageBrush();
-                                var image1 = new BitmapImage(new Uri(account.AviUrl));
+                                var image1 = new BitmapImage(new Uri(encryptedAccount.AviUrl));
                                 imageBrush.ImageSource = image1;
                                 accountImage.Background = imageBrush;
                             }
                             catch (Exception m)
                             {
                                 // Probably no internet connection or avatar url is bad.
-                                Console.WriteLine($"Error: {m.Message}");
+                                Console.WriteLine(@"Error: {0}", m.Message);
 
-                                accountImage.Background = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonColor));
-                                accountButton.Foreground = new SolidColorBrush((Color)ConvertFromString(settings.User.ButtonFontColor));
+                                accountImage.Background = new SolidColorBrush((Color) ConvertFromString(settings.User.ButtonColor));
+                                accountButton.Foreground = new SolidColorBrush((Color) ConvertFromString(settings.User.ButtonFontColor));
                                 timeoutTextBlock.Margin = new Thickness(0, 0, 0, 50);
 
-                                if (!string.IsNullOrEmpty(account.Alias))
-                                    accountButton.Content = account.Alias;
-                                else
-                                    accountButton.Content = account.Name;
+                                accountButton.Content = !encryptedAccount.Alias.IsNullOrEmpty() ? encryptedAccount.Alias : encryptedAccount.Name;
                             }
                         }
 
@@ -737,10 +724,10 @@ namespace SAM
 
                         var buttonIndex = int.Parse(accountButton.Tag.ToString());
 
-                        if (account.HasActiveTimeout())
+                        if (encryptedAccount.HasActiveTimeout())
                         {
                             // Set up timer event to update timeout label
-                            var timeLeft = account.Timeout - DateTime.Now;
+                            var timeLeft = encryptedAccount.Timeout - DateTime.Now;
 
                             var timeoutTimer = new Timer();
                             timeoutTimers.Add(timeoutTimer);
@@ -757,7 +744,7 @@ namespace SAM
                         accountButtonGrid.Children.Add(accountText);
                         accountButtonGrid.Children.Add(accountButton);
 
-                        if (settings.User.HideBanIcons == false && (account.NumberOfVacBans > 0 || account.NumberOfGameBans > 0))
+                        if (settings.User.HideBanIcons == false && (encryptedAccount.NumberOfVacBans > 0 || encryptedAccount.NumberOfGameBans > 0))
                         {
                             var banInfoImage = new Image
                             {
@@ -767,24 +754,24 @@ namespace SAM
                                 Width = 14,
                                 Margin = new Thickness(10, 10, 10, 10),
                                 Source = new BitmapImage(new Uri(@"error_red_18dp.png", UriKind.RelativeOrAbsolute)),
-                                ToolTip = "VAC Bans: " + account.NumberOfVacBans +
-                                          "\nGame Bans: " + account.NumberOfGameBans +
-                                          "\nCommunity Banned: " + account.CommunityBanned +
-                                          "\nEconomy Ban: " + account.EconomyBan +
-                                          "\nDays Since Last Ban:" + account.DaysSinceLastBan
+                                ToolTip = "VAC Bans: " + encryptedAccount.NumberOfVacBans +
+                                          "\nGame Bans: " + encryptedAccount.NumberOfGameBans +
+                                          "\nCommunity Banned: " + encryptedAccount.CommunityBanned +
+                                          "\nEconomy Ban: " + encryptedAccount.EconomyBan +
+                                          "\nDays Since Last Ban:" + encryptedAccount.DaysSinceLastBan
                             };
 
 
                             accountButtonGrid.Children.Add(banInfoImage);
                         }
 
-                        accountButton.ContextMenu = GenerateAccountContextMenu(account, buttonIndex);
+                        accountButton.ContextMenu = GenerateAccountContextMenu(encryptedAccount, buttonIndex);
                         accountButton.ContextMenuOpening += ContextMenu_ContextMenuOpening;
 
                         buttonGrid.Children.Add(accountButtonGrid);
 
                         TaskBarIconLoginContextMenu.IsEnabled = true;
-                        TaskBarIconLoginContextMenu.Items.Add(GenerateTaskBarMenuItem(bCounter, account));
+                        TaskBarIconLoginContextMenu.Items.Add(GenerateTaskBarMenuItem(bCounter, encryptedAccount));
 
                         bCounter++;
                         xCounter++;
@@ -835,20 +822,19 @@ namespace SAM
             }
         }
 
-        private MenuItem GenerateTaskBarMenuItem(int index, Account account)
+        private MenuItem GenerateTaskBarMenuItem(int index, Account selectedAccount)
         {
-            var taskBarIconLoginItem = new MenuItem { Tag = index };
+            var taskBarIconLoginItem = new MenuItem
+            {
+                Tag = index,
+                Header = !selectedAccount.Alias.IsNullOrEmpty() ? selectedAccount.Alias : selectedAccount.Name
+            };
             taskBarIconLoginItem.Click += TaskbarIconLoginItem_Click;
-
-            if (!string.IsNullOrEmpty(account.Alias))
-                taskBarIconLoginItem.Header = account.Alias;
-            else
-                taskBarIconLoginItem.Header = account.Name;
 
             return taskBarIconLoginItem;
         }
 
-        private ContextMenu GenerateAccountContextMenu(Account account, int index)
+        private ContextMenu GenerateAccountContextMenu(Account selectedAccount, int index)
         {
             var accountContext = new ContextMenu();
 
@@ -885,7 +871,7 @@ namespace SAM
             var copyPasswordItem = new MenuItem();
             var copyProfileUrlItem = new MenuItem();
 
-            if (!account.HasActiveTimeout())
+            if (!selectedAccount.HasActiveTimeout())
                 clearTimeoutItem.IsEnabled = false;
 
             deleteItem.Header = "Delete";
@@ -901,6 +887,7 @@ namespace SAM
             deleteItem.Click += delegate { DeleteEntry(index); };
             editItem.Click += delegate
             {
+                // TODO: Wtf is going on.
                 var editEntryAsync = EditEntryAsync(index);
             };
             exportItem.Click += delegate { ExportAccount(index); };
@@ -961,7 +948,6 @@ namespace SAM
 
             if (dialog.ShowDialog() == true && dialog.AccountText != "" && dialog.PasswordText != "")
             {
-                account = dialog.AccountText;
                 var password = dialog.PasswordText;
                 var sharedSecret = dialog.SharedSecretText;
 
@@ -990,8 +976,8 @@ namespace SAM
                     {
                         Name = dialog.AccountText,
                         Alias = dialog.AliasText,
-                        Password = StringCipher.Encrypt(password, eKey),
-                        SharedSecret = StringCipher.Encrypt(sharedSecret, eKey),
+                        Password = StringCipher.Encrypt(password, EKey),
+                        SharedSecret = StringCipher.Encrypt(sharedSecret, EKey),
                         ProfUrl = dialog.UrlText,
                         AviUrl = aviUrl,
                         SteamId = steamId,
@@ -1065,8 +1051,8 @@ namespace SAM
                 {
                     EncryptedAccounts[index].Name = dialog.AccountText;
                     EncryptedAccounts[index].Alias = dialog.AliasText;
-                    EncryptedAccounts[index].Password = StringCipher.Encrypt(dialog.PasswordText, eKey);
-                    EncryptedAccounts[index].SharedSecret = StringCipher.Encrypt(dialog.SharedSecretText, eKey);
+                    EncryptedAccounts[index].Password = StringCipher.Encrypt(dialog.PasswordText, EKey);
+                    EncryptedAccounts[index].SharedSecret = StringCipher.Encrypt(dialog.SharedSecretText, EKey);
                     EncryptedAccounts[index].ProfUrl = dialog.UrlText;
                     EncryptedAccounts[index].AviUrl = aviUrl;
                     EncryptedAccounts[index].SteamId = dialog.SteamId;
@@ -1095,7 +1081,7 @@ namespace SAM
 
         private void Login(int index, int tryCount)
         {
-            if (tryCount == maxRetry)
+            if (tryCount == MaxRetry)
             {
                 MessageBox.Show("Login Failed! Please try again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -1138,7 +1124,7 @@ namespace SAM
                 }
                 catch
                 {
-                    Console.WriteLine("No steam process found or steam failed to shutdown.");
+                    Console.WriteLine(@"No steam process found or steam failed to shutdown.");
                 }
             }
 
@@ -1193,7 +1179,7 @@ namespace SAM
             {
                 if (settings.User.RememberPassword) Utils.SetRememberPasswordKeyValue(1);
 
-                if (!string.IsNullOrEmpty(decryptedAccounts[index].SharedSecret))
+                if (!decryptedAccounts[index].SharedSecret.IsNullOrEmpty())
                     Task.Run(() => Type2Fa(index, 0));
                 else
                     PostLogin();
@@ -1268,11 +1254,11 @@ namespace SAM
             var waitCount = 0;
 
             // Only handle 2FA if shared secret was entered.
-            if (!string.IsNullOrEmpty(decryptedAccounts[index].SharedSecret))
+            if (!decryptedAccounts[index].SharedSecret.IsNullOrEmpty())
             {
                 var steamGuardWindow = Utils.GetSteamGuardWindow();
 
-                while (!steamGuardWindow.IsValid && waitCount < maxRetry)
+                while (!steamGuardWindow.IsValid && waitCount < MaxRetry)
                 {
                     Thread.Sleep(settings.User.SleepTime);
 
@@ -1288,7 +1274,7 @@ namespace SAM
                 }
 
                 // 2FA window not found, login probably failed. Try again.
-                if (waitCount == maxRetry)
+                if (waitCount == MaxRetry)
                 {
                     Dispatcher.Invoke(delegate { Login(index, tryCount + 1); });
                     return;
@@ -1322,7 +1308,7 @@ namespace SAM
                         return;
                 }
 
-                Console.WriteLine("Found windows.");
+                Console.WriteLine(@"Found windows.");
 
                 var steamGuardProcess = Utils.WaitForSteamProcess(steamGuardWindow);
                 steamGuardProcess.WaitForInputIdle();
@@ -1331,7 +1317,7 @@ namespace SAM
                 Thread.Sleep(settings.User.SleepTime);
 
                 // Generate 2FA code, then send it to the client.
-                Console.WriteLine("It is idle now, typing code...");
+                Console.WriteLine(@"It is idle now, typing code...");
 
                 Utils.SetForegroundWindow(steamGuardWindow.RawPtr);
 
@@ -1365,20 +1351,20 @@ namespace SAM
                 // Check if we still have a 2FA popup, which means the previous one failed.
                 steamGuardWindow = Utils.GetSteamGuardWindow();
 
-                if (tryCount < maxRetry && steamGuardWindow.IsValid)
+                if (tryCount < MaxRetry && steamGuardWindow.IsValid)
                 {
-                    Console.WriteLine("2FA code failed, retrying...");
+                    Console.WriteLine(@"2FA code failed, retrying...");
                     tryCount++;
                     continue;
                 }
 
-                if (tryCount == maxRetry && steamGuardWindow.IsValid)
+                if (tryCount == MaxRetry && steamGuardWindow.IsValid)
                 {
                     var result = MessageBox.Show("2FA Failed\nPlease wait or bring the Steam Guard\nwindow to the front before clicking OK", "Error", MessageBoxButton.OKCancel, MessageBoxImage.Error);
 
                     if (result == MessageBoxResult.OK) Type2Fa(index, tryCount + 1);
                 }
-                else if (tryCount == maxRetry + 1 && steamGuardWindow.IsValid)
+                else if (tryCount == MaxRetry + 1 && steamGuardWindow.IsValid)
                 {
                     MessageBox.Show("2FA Failed\nPlease verify your shared secret is correct!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
@@ -1391,7 +1377,7 @@ namespace SAM
         private void PostLogin()
         {
             if (settings.User.ClearUserData)
-                Utils.ClearSteamUserDataFolder(settings.User.SteamPath, settings.User.SleepTime, maxRetry);
+                Utils.ClearSteamUserDataFolder(settings.User.SteamPath, settings.User.SleepTime, MaxRetry);
 
             if (settings.User.CloseOnLogin)
                 Dispatcher.Invoke(Close);
@@ -1472,7 +1458,7 @@ namespace SAM
 
         private void ImportDelimitedTextMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var importDelimitedWindow = new ImportDelimited(eKey);
+            var importDelimitedWindow = new ImportDelimited(EKey);
             importDelimitedWindow.ShowDialog();
 
             RefreshWindow();
@@ -1612,7 +1598,7 @@ namespace SAM
 
         private void MainScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            var scv = (ScrollViewer)sender;
+            var scv = (ScrollViewer) sender;
             scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
             e.Handled = true;
         }
@@ -1641,15 +1627,11 @@ namespace SAM
         private static readonly string DataFile = "info.dat";
 
         // Keys are changed before releases/updates
-        private static readonly string eKey = "PRIVATE_KEY";
+        private static readonly string EKey = "PRIVATE_KEY";
         private static string ePassword = "";
-
-        private static string account;
 
         private static List<string> launchParameters;
 
-        private static double originalHeight;
-        private static double originalWidth;
         private static Thickness initialAddButtonGridMargin;
 
         private static string assemblyVer;
@@ -1663,10 +1645,10 @@ namespace SAM
 
         private static Timer autoReloadApiTimer;
 
-        private static readonly int maxRetry = 2;
+        private static readonly int MaxRetry = 2;
 
         // Resize animation variables
-        private static System.Windows.Forms.Timer _timer = new System.Windows.Forms.Timer();
+        private static readonly System.Windows.Forms.Timer Timer = new System.Windows.Forms.Timer();
         private int _stop;
         private double _ratioHeight;
         private double _ratioWidth;
@@ -1682,8 +1664,8 @@ namespace SAM
             _height = passedHeight;
             _width = passedWidth;
 
-            _timer.Enabled = true;
-            _timer.Start();
+            Timer.Enabled = true;
+            Timer.Start();
         }
 
         private void Timer_Tick(object myObject, EventArgs myEventArgs)
@@ -1701,9 +1683,9 @@ namespace SAM
 
             if (_stop == 5)
             {
-                _timer.Stop();
-                _timer.Enabled = false;
-                _timer.Dispose();
+                Timer.Stop();
+                Timer.Enabled = false;
+                Timer.Dispose();
 
                 _stop = 0;
 
@@ -1784,8 +1766,8 @@ namespace SAM
 
                 var mousePoint = e.GetPosition(this);
 
-                var marginLeft = (int)mousePoint.X - (int)btn.Width / 2;
-                var marginTop = (int)mousePoint.Y - (int)btn.Height / 2;
+                var marginLeft = (int) mousePoint.X - (int) btn.Width / 2;
+                var marginTop = (int) mousePoint.Y - (int) btn.Height / 2;
 
                 btn.Margin = new Thickness(marginLeft, marginTop, 0, 0);
             }
@@ -1813,7 +1795,7 @@ namespace SAM
 
         private void AccountButtonSetTimeout_Click(int index, DateTime timeout)
         {
-            if (timeout != null && timeout != new DateTime())
+            if (timeout != new DateTime())
                 EncryptedAccounts[index].Timeout = timeout;
             else
                 //MessageBox.Show("Error setting account timeout.");
@@ -2037,7 +2019,7 @@ namespace SAM
 
                 foreach (var accountButtonGrid in buttonGridCollection)
                 {
-                    var accountButton = accountButtonGrid.Children.OfType<Button>().FirstOrDefault();
+                    var accountButton = accountButtonGrid.Children.OfType<Button>().First();
 
                     accountButton.Style = (Style) Resources["ExportButtonStyle"];
                     accountButton.Click -= AccountButton_Click;
@@ -2123,9 +2105,9 @@ namespace SAM
 
                 foreach (var accountButtonGrid in buttonGridCollection)
                 {
-                    var accountButton = accountButtonGrid.Children.OfType<Button>().FirstOrDefault();
+                    var accountButton = accountButtonGrid.Children.OfType<Button>().First();
 
-                    accountButton.Style = (Style)Resources["DeleteButtonStyle"];
+                    accountButton.Style = (Style) Resources["DeleteButtonStyle"];
                     accountButton.Click -= AccountButton_Click;
                     accountButton.Click += AccountButtonDelete_Click;
                     accountButton.PreviewMouseLeftButtonDown -= AccountButton_MouseDown;
@@ -2169,16 +2151,16 @@ namespace SAM
                     deleteAccounts.Add(i, AccountsDataGrid.SelectedItems[i] as Account);
                 }
 
-            if (deleteAccounts.Count > 0)
+            if (deleteAccounts.Any())
             {
                 var messageBoxResult = MessageBox.Show("Are you sure you want to delete the selected accounts?", "Confirm", MessageBoxButton.YesNo,
                     MessageBoxImage.Warning);
 
                 if (messageBoxResult == MessageBoxResult.Yes)
                 {
-                    foreach (var account in deleteAccounts.Values.ToList())
+                    foreach (var selectedAccount in deleteAccounts.Values.ToList())
                     {
-                        EncryptedAccounts.Remove(account);
+                        EncryptedAccounts.Remove(selectedAccount);
                     }
 
                     SerializeAccounts();
@@ -2213,9 +2195,9 @@ namespace SAM
 
                 foreach (var accountButtonGrid in buttonGridCollection)
                 {
-                    var accountButton = accountButtonGrid.Children.OfType<Button>().FirstOrDefault();
+                    var accountButton = accountButtonGrid.Children.OfType<Button>().First();
 
-                    accountButton.Style = (Style)Resources["SAMButtonStyle"];
+                    accountButton.Style = (Style) Resources["SAMButtonStyle"];
                     accountButton.Click -= AccountButtonExport_Click;
                     accountButton.Click -= AccountButtonDelete_Click;
                     accountButton.Click += AccountButton_Click;
@@ -2233,10 +2215,10 @@ namespace SAM
 
         private void AccountsDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (AccountsDataGrid.SelectedItem != null && deleting == false)
+            if (AccountsDataGrid.SelectedItem != null && !deleting)
             {
-                var account = AccountsDataGrid.SelectedItem as Account;
-                var index = EncryptedAccounts.FindIndex(a => a.Name == account.Name);
+                var selectedAccount = (Account) AccountsDataGrid.SelectedItem;
+                var index = EncryptedAccounts.FindIndex(a => a.Name == selectedAccount.Name);
                 Login(index, 0);
             }
         }
@@ -2253,15 +2235,15 @@ namespace SAM
             }
             else if (AccountsDataGrid.SelectedItem != null)
             {
-                var account = AccountsDataGrid.SelectedItem as Account;
-                var index = EncryptedAccounts.FindIndex(a => a.Name == account.Name);
-                AccountsDataGrid.ContextMenu = GenerateAccountContextMenu(account, index);
+                var selectedAccount = (Account) AccountsDataGrid.SelectedItem;
+                var index = EncryptedAccounts.FindIndex(a => a.Name == selectedAccount.Name);
+                AccountsDataGrid.ContextMenu = GenerateAccountContextMenu(selectedAccount, index);
             }
         }
 
         private void AccountsDataGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var depObject = (DependencyObject)e.OriginalSource;
+            var depObject = (DependencyObject) e.OriginalSource;
 
             while (depObject != null && !(depObject is DataGridColumnHeader) && !(depObject is DataGridRow))
             {
