@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Windows;
+using SAM.Helpers;
+using SAM.Models;
 
 namespace SAM
 {

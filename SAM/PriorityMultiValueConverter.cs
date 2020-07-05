@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace SAM
 {
-    class PriorityMultiValueConverter : IMultiValueConverter
+    internal class PriorityMultiValueConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
