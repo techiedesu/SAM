@@ -183,13 +183,14 @@
                                 <MenuItem Header="Add" Click="AddButton_Click" />
                                 <MenuItem Header="Import">
                                     <MenuItem Header="From DAT File" Click="ImportFromFileMenuItem_Click" />
+                                    <MenuItem Header="From Steam instance" Click="ImportFromSteamInstanceItem_Click" />
                                     <MenuItem Header="Delimiter Separated" Click="ImportDelimitedTextMenuItem_Click" />
                                 </MenuItem>
                                 <MenuItem Header="Export">
                                     <MenuItem Header="All" Click="ExportAllMenuItem_Click"/>
                                     <MenuItem Header="Select" Click="ExportSelectedMenuItem_Click" />
                                 </MenuItem>
-                                <MenuItem Header="Delete" >
+                                <MenuItem Header="Delete">
                                     <MenuItem Header="All" Click="DeleteAllAccountsMenuItem_Click" />
                                     <MenuItem Header="Banned" Click="DeleteBannedAccounts_Click" />
                                     <MenuItem Header="Select" Click="DeleteSelectedMenuItem_Click" />

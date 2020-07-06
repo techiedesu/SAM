@@ -28,6 +28,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -38,6 +39,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>steam_alt-10.ico</ApplicationIcon>
@@ -72,12 +74,14 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
     <Compile Include="Helpers\SteamHelper.cs" />
+    <Compile Include="JsonConverters\CustomDateTimeOffsetJsonConverter.cs" />
     <Compile Include="Models\Account.cs" />
     <Compile Include="AltActionType.cs" />
     <Compile Include="ExposedInfoWindow.xaml.cs">
       <DependentUpon>ExposedInfoWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="PriorityMultiValueConverter.cs" />
+    <Compile Include="Services\ImportService.cs" />
     <Compile Include="Services\IniFileService.cs" />
     <Compile Include="VirtualInputMethod.cs" />
     <Compile Include="SamSettings.cs" />
@@ -204,6 +208,9 @@
     </PackageReference>
     <PackageReference Include="Gameloop.Vdf">
       <Version>0.6.1</Version>
+    </PackageReference>
+    <PackageReference Include="Gameloop.Vdf.JsonConverter">
+      <Version>0.2.1</Version>
     </PackageReference>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf">
       <Version>1.0.8</Version>

@@ -7,7 +7,7 @@ using SAM.Services;
 
 namespace SAM
 {
-    internal class SamSettings
+    public class SamSettings
     {
         internal class Sections
         {

@@ -12,7 +12,7 @@ namespace SAM.Services
     // TODO: Do not use WinAPI for ini files, lol.
 
     // revision 10
-    internal class IniFileService   
+    public class IniFileService
     {
         private readonly string _path;
         // TODO: rename?
@@ -28,7 +28,10 @@ namespace SAM.Services
 
         #endregion
 
-        public IniFileService(string iniPath = null) => _path = new FileInfo(iniPath ?? $"{_exe}.ini").FullName;
+        public IniFileService(string iniPath = null)
+        {
+            _path = new FileInfo(iniPath ?? $"{_exe}.ini").FullName;
+        }
 
         public string Read(string key, string section = null)
         {
@@ -52,6 +55,9 @@ namespace SAM.Services
             Write(null, null, section ?? _exe);
         }
 
-        public bool KeyExists(string key, string section = null) => Read(key, section).Any();
+        public bool KeyExists(string key, string section = null)
+        {
+            return Read(key, section).Any();
+        }
     }
 }

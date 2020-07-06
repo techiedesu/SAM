@@ -19,7 +19,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using MahApps.Metro;
-using MahApps.Metro.Controls;
 using SAM.Extensions;
 using SAM.Helpers;
 using SAM.Models;
@@ -1925,6 +1924,12 @@ namespace SAM
         private void ShuffleAccounts_Click(object sender, RoutedEventArgs e)
         {
             SortAccounts(1);
+        }
+
+        private void ImportFromSteamInstanceItem_Click(object sender, RoutedEventArgs e)
+        {
+            Utils.ImportAccountsFromSteamInstance();
+            RefreshWindow();
         }
 
         private void ImportFromFileMenuItem_Click(object sender, RoutedEventArgs e)

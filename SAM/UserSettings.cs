@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace SAM
 {
-    internal class UserSettings
+    public class UserSettings
     {
         public readonly Dictionary<string, object> KeyValuePairs = new Dictionary<string, object>
         {

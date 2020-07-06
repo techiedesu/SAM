@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace SAM
 {
-    internal enum VirtualInputMethod
+    public enum VirtualInputMethod
     {
         SendMessage,
         PostMessage,

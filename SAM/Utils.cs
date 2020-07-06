@@ -62,6 +62,8 @@ namespace SAM
 
         public const int ApiKeyLength = 32;
 
+        private static readonly IImportService ImportService = new ImportService();
+
         public static void Serialize(List<Account> accounts)
         {
             var serializer = new XmlSerializer(accounts.GetType());
@@ -151,20 +153,25 @@ namespace SAM
 
             var result = dialog.ShowDialog();
 
-            if (result == true)
+            if (result != true)
+                return;
+
+            try
             {
-                try
-                {
-                    var tempAccounts = Deserialize(dialog.FileName);
-                    MainWindow.EncryptedAccounts = MainWindow.EncryptedAccounts.Concat(tempAccounts).ToList();
-                    Serialize(MainWindow.EncryptedAccounts);
-                    MessageBox.Show("Accounts imported!");
-                }
-                catch (Exception m)
-                {
-                    MessageBox.Show(m.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                var tempAccounts = Deserialize(dialog.FileName);
+                MainWindow.EncryptedAccounts = MainWindow.EncryptedAccounts.Concat(tempAccounts).ToList();
+                Serialize(MainWindow.EncryptedAccounts);
+                MessageBox.Show("Accounts imported!");
             }
+            catch (Exception m)
+            {
+                MessageBox.Show(m.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public static void ImportAccountsFromSteamInstance()
+        {
+            ImportService.ImportFromSteamInstance();
         }
 
         public static void ExportAccountFile()
@@ -543,7 +550,7 @@ namespace SAM
         public static async Task<string> HtmlAviScrapeAsync(string profUrl)
         {
             // If user entered profile url, get avatar jpg url
-            if (profUrl != null && profUrl.Length > 2)
+            if (profUrl.Length > 2)
             {
                 // Verify url starts with valid prefix for HtmlWeb
                 if (!profUrl.StartsWith("https://") && !profUrl.StartsWith("http://"))
